@@ -6,8 +6,8 @@ import cv2
 def get_center_white(color_image):
     hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
-    lower_hsl = np.array([0, 0, 200])  
-    upper_hsl = np.array([180, 255, 255]) 
+    lower_hsl = np.array([0, 0, 0])
+    upper_hsl = np.array([180, 255, 35]) 
 
     # Threshold the image to get only cup colors
     mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
@@ -27,8 +27,8 @@ def get_center_white(color_image):
 def get_whiteboard(color_image):
     hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
-    lower_hsl = np.array([0, 0, 200])  
-    upper_hsl = np.array([180, 255, 255]) 
+    lower_hsl = np.array([0, 0, 0])  
+    upper_hsl = np.array([180, 255, 35]) 
 
     # Threshold the image to get only cup colors
     mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
