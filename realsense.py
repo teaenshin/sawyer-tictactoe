@@ -41,14 +41,10 @@ try:
         if not color_frame:
             continue
         color_image = np.asanyarray(color_frame.get_data())
-        color_colormap_dim = color_image.shape
         cv2.imwrite('imgs/cam2.jpg',color_image)
         center_coords = get_center_white(color_image)
-        
-        # If center_coords is not None, draw a red dot
         if center_coords:
             cv2.circle(color_image, center_coords, 5, (0, 0, 255), -1)
-
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', color_image)
         cv2.waitKey(1)
