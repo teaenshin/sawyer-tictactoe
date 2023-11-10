@@ -28,6 +28,9 @@ try:
             continue
         color_image = np.asanyarray(color_frame.get_data())
         color_colormap_dim = color_image.shape
+
+        cv2.imwrite('imgs/cam2.jpg',color_image)
+
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', color_image)
         cv2.waitKey(1)
