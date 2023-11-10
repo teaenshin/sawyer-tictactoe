@@ -131,7 +131,7 @@ def identifyLines():
         lines = cv2.HoughLines(edges, 1, np.pi / 180, 80)  
         # lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=50, maxLineGap=10)
         # print('lines', lines)
-    
+    source ~ee106a/sawyer_setup.bash
         # Identify grid lines (vertical and horizontal)
         horizontal_lines = []
         vertical_lines = []
@@ -171,7 +171,7 @@ def identifyLines():
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(resized_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cvsource ~ee106a/sawyer_setup.bash2.line(resized_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
         # Display the processed image with grid lines
         cv2.imshow('original', frame)
@@ -228,7 +228,7 @@ def processBoard(debug=True):
 
   
 
-    cv2.waitKey(0) 
+    cv2.waitKey(0)
     cv2.destroyAllWindows() 
     
     
@@ -256,6 +256,34 @@ def getGridCells(center, gridLen):
     ]
 
     '''
+
+def getCamera():
+    print('getcamera')
+    cap = cv2.VideoCapture(2)
+    if not cap.isOpened():
+        print("Cannot open camera")
+        exit()
+    while True:
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        # if frame is read correctly ret is True
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
+        # Display the processed image with grid lines
+        cv2.imshow('original', frame)
+        print('frame size', frame.shape)
+        cv2.imwrite('imgs/cam1.jpg',frame)
+        # Set the frame rate you want to process (1 frame per second).
+        fps = 10
+        delay = int(1000 / fps)  # Delay in milliseconds
+        if cv2.waitKey(delay) == ord('q'):
+            print("Stopped video processing")
+            break
+    # Release the video capture and close all OpenCV windows.
+    cap.release()
+    cv2.destroyAllWindows()
+
 def main():
     #create a 1d array to hold the gamestate
     gamestate = np.array([None,None,None,
@@ -264,7 +292,7 @@ def main():
 
     # Read in video feed 
     # processBoard()
-    processBoard()
+    getCamera()
     
     '''
     if board is done drawing:

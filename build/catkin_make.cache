@@ -1,0 +1,2 @@
+sawyer
+-DCATKIN_DEVEL_PREFIX=/home/cc/ee106a/fa23/class/ee106a-aeo/project/devel -DCMAKE_INSTALL_PREFIX=/home/cc/ee106a/fa23/class/ee106a-aeo/project/install -G Unix Makefiles
