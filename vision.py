@@ -91,57 +91,9 @@ import numpy as np
 #         paper = paper[10:-10, 10:-10]
 #     return paper, corners
 
-# def processBoard():
-    # '''
-    
-    # '''
-    # print('processBoard()')
-    # # TODO: get camera working
-    # # Set the frame rate you want to process (1 frame per second).
-    # # fps = 100
-    # # delay = int(1000 / fps)  # Delay in milliseconds
-    
-    # cap = cv2.VideoCapture(0)
-    # if not cap.isOpened():
-    #     print("Cannot open camera")
-    #     exit()
-    # while True:
-    #     # Capture frame-by-frame
-    #     ret, frame = cap.read()
-    #     # if frame is read correctly ret is True
-    #     if not ret:
-    #         print("Can't receive frame (stream end?). Exiting ...")
-    #         break
-        
-    #     # Preprocess the frame (grayscale, blur, threshold, etc.).
-    #     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #     _, thresh = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY)
-    #     thresh = cv2.GaussianBlur(thresh, (7, 7), 0)
-    #     paper, corners = find_sheet_paper(frame, thresh)
-    #     # Four red dots must appear on each corner of the sheet of paper,
-    #     # otherwise try moving it until they're well detected
-    #     if paper is not None and corners is not None:
-    #         for c in corners:
-    #             cv2.circle(frame, (int(c[0]), int(c[1])), 2, (0, 0, 255), 2)
-    #     # Display the resulting frame
-    #     cv2.imshow('original', frame)
-    #     # if paper is not None:
-    #     #     cv2.imshow('bird view', paper)
 
-    #     #
-    #     if cv2.waitKey(1) == ord('q'):
-    #         print("Stopped video processing")
-    #         break
-
-    #     # Detect the grid lines.
-
-        
-    # # Release the video capture and close all OpenCV windows.
-    # cap.release()
-    # cv2.destroyAllWindows()
-
+'''
 def identifyLines():
-
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Cannot open camera")
@@ -236,10 +188,60 @@ def identifyLines():
     # Release the video capture and close all OpenCV windows.
     cap.release()
     cv2.destroyAllWindows()
+'''
+
+###########
+
+def processBoard(debug=True):
+    '''
     
+    '''
+    
+   
+    print('processboard')
+    kernel =  np.ones((7,7),np.uint8)
+    # #### # TODO: reindent
+    # preprocess
+    img = cv2.imread('board1.jpg')
+    # cv2.imshow('original', img)
+    resized_frame = cv2.resize(img, (200, 200))  # Resize the image for consistency
+    # cv2.imshow('resized', resized_frame)
+    # Convert to grayscale
+    gray = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+    cv2.imshow('gray', gray)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
+    cv2.imshow('blur', blur)
+    edges = cv2.Canny(blur, 75, 150)
+    # cv2.imshow('edges', edges)
+    _, thresh = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
+    cv2.imshow('threshold', thresh)
 
+    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    print('contours len', len(contours))
 
+    countours_img = resized_frame.copy()
+    cv2.drawContours(image=countours_img, contours=contours, contourIdx=-1, color=(155, 255, 0), thickness=2)
+    cv2.imshow('resized_frame with contours', countours_img)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True) # sort descending orter
+    
+    #####
 
+  
+
+    cv2.waitKey(0) 
+    cv2.destroyAllWindows() 
+    
+    
+    # Display the resulting frame
+
+     
+def preprocess(img):
+    resized_frame = cv2.resize(img, (64, 64))  # Resize the image for consistency
+    # Convert to grayscale
+    gray = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blur, 150, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 
 
@@ -262,7 +264,7 @@ def main():
 
     # Read in video feed 
     # processBoard()
-    identifyLines()
+    processBoard()
     
     '''
     if board is done drawing:

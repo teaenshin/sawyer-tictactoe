@@ -38,7 +38,7 @@ class ObjectDetector:
         self.tf_listener = tf.TransformListener()  # Create a TransformListener object
 
         self.point_pub = rospy.Publisher("goal_point", Point, queue_size=10)
-        self.image_pub = rospy.Publisher('detected_cup', Image, queue_size=10)
+        self.image_pub = rospy.Publisher('detected_whiteboard', Image, queue_size=10)
 
         rospy.spin()
 
@@ -51,7 +51,6 @@ class ObjectDetector:
         self.cy = msg.K[5]
 
     def pixel_to_point(self, u, v, depth):
-        # TODO: Use the camera intrinsics to convert pixel coordinates to real-world coordinates
         X = ((u - self.cx) * depth) / self.fx
         Y = ((v- self.cy) * depth) / self.fy
         Z = depth
@@ -85,7 +84,6 @@ class ObjectDetector:
     def process_images(self):
         # Convert the color image to HSV color space
         hsv = cv2.cvtColor(self.cv_color_image, cv2.COLOR_BGR2HSV)
-        # TODO: Define range for cup color in HSV
         # NOTE: You can visualize how this is performing by viewing the result of the segmentation in rviz
         # To see the current HSV values in the center of the image (where your cup should be), we will print out
         # the HSV values of the center pixel. You should add at least +/- 10 to the current values to define your range.
@@ -93,9 +91,8 @@ class ObjectDetector:
         print("Current HSV values at center of image: ", np.mean(hsv[len(hsv)//2], axis=0))
 
 
-        # greenBGR = np.uint8([[[0,255,0 ]]])
-        lower_hsv = np.array([153, 159, 138]) 
-        upper_hsv = np.array([173, 199, 178])
+        lower_hsv = np.array([0, 0, 138]) 
+        upper_hsv = np.array([180, 199, 178])
 
         # TODO: Threshold the image to get only cup colors
         # HINT: Lookup cv2.inRange() or np.where()
