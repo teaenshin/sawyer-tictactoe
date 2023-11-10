@@ -193,40 +193,57 @@ def identifyLines():
 ###########
 
 def processBoard(debug=True):
-    '''
-    
-    '''
-    
-   
+
     print('processboard')
-    kernel =  np.ones((7,7),np.uint8)
-    # #### # TODO: reindent
-    # preprocess
-    img = cv2.imread('board1.jpg')
+    # 1. Preproccess img
+    img = cv2.imread('imgs/cam3.jpg')
     # cv2.imshow('original', img)
-    resized_frame = cv2.resize(img, (200, 200))  # Resize the image for consistency
+    resized_frame = cv2.resize(img, (300, 300))  # Resize the image for consistency
     # cv2.imshow('resized', resized_frame)
     # Convert to grayscale
     gray = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
     cv2.imshow('gray', gray)
-    blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    cv2.imshow('blur', blur)
-    edges = cv2.Canny(blur, 75, 150)
-    # cv2.imshow('edges', edges)
-    _, thresh = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
+    # bi = cv2.bilateralFilter(gray, 5, 75, 75)
+    # cv2.imshow('bi',bi)
+    _, thresh = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY)
+    thresh = 255 - thresh # invert so grid becomes white
     cv2.imshow('threshold', thresh)
 
-    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    print('contours len', len(contours))
 
-    countours_img = resized_frame.copy()
-    cv2.drawContours(image=countours_img, contours=contours, contourIdx=-1, color=(155, 255, 0), thickness=2)
-    cv2.imshow('resized_frame with contours', countours_img)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True) # sort descending orter
+    # 2. Get largest contour, which should be the grid
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find the largest contour based on area
+    largest_contour = max(contours, key=cv2.contourArea)
+    # Create a mask image for visualization
+    mask = resized_frame.copy()
+    # cv2.drawContours(mask, [largest_contour], 0, 255, thickness=cv2.FILLED)
+    # cv2.imshow('largest contour', mask)
+    epsilon = 0.04 * cv2.arcLength(largest_contour, True)
+    approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+    # 3. Get 4 corners of the grid
+    corners = approx_polygon.reshape(-1, 2)
+    print(corners)
+    # Draw the polygon on the original image
+    image_with_polygon = resized_frame.copy()
+    for corner in corners:
+        cv2.circle(image_with_polygon, corner, 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
+    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+    cv2.imshow('largest contour with corners ', image_with_polygon)
+
     
-    #####
-
-  
+    # 4. warp grid into square
+    # Define the four corners of the target square
+    target_size = 300
+    target_corners = np.array([[0, 0], [target_size - 1, 0], [target_size - 1, target_size - 1], [0, target_size - 1]], dtype=np.float32)
+    corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
+    print('cornesrs float', corners)
+    assert corners.shape == (4, 2)
+    # Calculate the perspective transformation matrix
+    transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
+    # Apply the perspective transformation
+    warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
+    cv2.imshow('warped_image', warped_image)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows() 
@@ -291,8 +308,8 @@ def main():
                         None,None,None])
 
     # Read in video feed 
-    # processBoard()
-    getCamera()
+    processBoard()
+    # getCamera()
     
     '''
     if board is done drawing:
