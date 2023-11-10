@@ -43,6 +43,14 @@ def get_whiteboard(color_image):
     largest_contour = max(contours, key=cv2.contourArea)
     return largest_contour
 
+def crop_image(image, contour):
+    
+    x, y, w, h = cv2.boundingRect(contour)
+    cropped_image = image[y:y+h, x:x+w]
+    return cropped_image
+
+
+
 
 
 # Configure depth and color streams
@@ -67,6 +75,11 @@ try:
         # If there is a largest contour, draw it on the image
         if largest_contour is not None:
             cv2.drawContours(color_image, [largest_contour], -1, (0, 255, 0), 3)
+            cropped_image = crop_image(color_image, largest_contour)
+            cv2.namedWindow('Cropped', cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('Cropped', cropped_image)
+
+
         if center_coords:
             cv2.circle(color_image, center_coords, 5, (0, 0, 255), -1)
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
