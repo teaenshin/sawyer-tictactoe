@@ -50,7 +50,14 @@ def crop_image(image, contour):
     return cropped_image
 
 
-
+def get_contour_center(contour):
+    M = cv2.moments(contour)
+    if M["m00"] != 0:
+        center_x = int(M["m10"] / M["m00"])
+        center_y = int(M["m01"] / M["m00"])
+    else:
+        center_x, center_y = 0, 0
+    return center_x, center_y
 
 
 # Configure depth and color streams
@@ -69,15 +76,16 @@ try:
             continue
         color_image = np.asanyarray(color_frame.get_data())
         cv2.imwrite('imgs/cam2.jpg',color_image)
-        center_coords = get_center_white(color_image)
+        
         largest_contour = get_whiteboard(color_image)
+        center_coords = get_contour_center(largest_contour)
 
         # If there is a largest contour, draw it on the image
         if largest_contour is not None:
             cv2.drawContours(color_image, [largest_contour], -1, (0, 255, 0), 3)
-            cropped_image = crop_image(color_image, largest_contour)
-            cv2.namedWindow('Cropped', cv2.WINDOW_AUTOSIZE)
-            cv2.imshow('Cropped', cropped_image)
+            # cropped_image = crop_image(color_image, largest_contour)
+            # cv2.namedWindow('Cropped', cv2.WINDOW_AUTOSIZE)
+            # cv2.imshow('Cropped', cropped_image)
 
 
         if center_coords:
