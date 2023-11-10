@@ -1,14 +1,28 @@
-## License: Apache 2.0. See LICENSE file in root directory.
-## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
-
-###############################################
-##      Open CV and Numpy integration        ##
-###############################################
-
 import pyrealsense2 as rs
 import numpy as np
 import cv2
 
+
+def get_center_white(color_image):
+    hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
+
+    lower_hsl = np.array([0, 0, 200])  
+    upper_hsl = np.array([180, 255, 255]) 
+
+    # Threshold the image to get only cup colors
+    mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
+
+    y_coords, x_coords = np.nonzero(mask)
+
+    # If there are no detected points, exit
+    if len(x_coords) == 0 or len(y_coords) == 0:
+        print("No points detected. Is your color filter wrong?")
+        return None
+
+    # Calculate the center of the detected region by 
+    center_x = int(np.mean(x_coords))
+    center_y = int(np.mean(y_coords))
+    return center_x , center_y
 
 
 
@@ -28,8 +42,12 @@ try:
             continue
         color_image = np.asanyarray(color_frame.get_data())
         color_colormap_dim = color_image.shape
-
         cv2.imwrite('imgs/cam2.jpg',color_image)
+        center_coords = get_center_white(color_image)
+        
+        # If center_coords is not None, draw a red dot
+        if center_coords:
+            cv2.circle(color_image, center_coords, 5, (0, 0, 255), -1)
 
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', color_image)
