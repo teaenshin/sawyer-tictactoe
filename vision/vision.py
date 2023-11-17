@@ -197,6 +197,8 @@ def getGridCells(warped_grid):
     cell_height = warped_grid.shape[0] // 3
     cell_width = warped_grid.shape[1] // 3
 
+    grid_cells = []
+
     for i in range(3):
         # Loop through each column
         for j in range(3):
@@ -207,21 +209,12 @@ def getGridCells(warped_grid):
             bottom = top + cell_height
 
             # Crop the image to the current cell
-            cell_image = warped_grid.crop((left, top, right, bottom))
+            cell_image = warped_grid[top:bottom, left:right]
 
             # Add the cropped image to the list
-            warped_grid.append(cell_image)
+            grid_cells.append(cell_image)
 
-    # Create a new image by pasting the grid images
-    # new_image = Image.new('RGB', (width, height))
-
-    # for i in range(3):
-    #     for j in range(3):
-    #         new_image.paste(grid_images[i * 3 + j], (j * cell_width, i * cell_height))
-            
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    return
+    return grid_cells
 
 
 
