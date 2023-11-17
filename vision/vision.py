@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from PIL import Image
-
 '''
 def identifyLines():
     cap = cv2.VideoCapture(0)
@@ -103,6 +102,10 @@ def identifyLines():
 ###########
 
 def get_whiteboard(color_image):
+    '''
+    Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
+    If no largest contour detected, will return None
+    '''
     hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
     lower_hsl = np.array([0, 0, 0])  
@@ -121,19 +124,25 @@ def get_whiteboard(color_image):
     return largest_contour
 
 def crop_image(image, contour):
-    
+    '''
+    Crops image to a given contour
+    '''
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
     return cropped_image
 
 def processBoard(debug=True):
-
-    img = cv2.imread('imgs/cam4.jpg')
+    '''
+    Identifies and crops to whiteboard. Identifies and crops to tictactoe grid in whiteboard.
+    Returns a binary image of the grid warped to top down view. 
+    '''
+    img = cv2.imread('../imgs/cam4.jpg')
     # resized_frame = cv2.resize(img, (300, 300))  # TODO # Resize the image for consistency
     resized_frame = img
     ### Crop 
     whiteboard = get_whiteboard(resized_frame)
     cropped_image = crop_image(resized_frame, whiteboard)
+    # TODO: let user manually check if cropped image is correct
 
     ### Preproccess img
     # Convert to grayscale
@@ -182,6 +191,7 @@ def processBoard(debug=True):
     transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
     # Apply the perspective transformation
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
+    _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
     cv2.imshow('warped_image', warped_image)
 
     cv2.waitKey(0)
@@ -190,41 +200,49 @@ def processBoard(debug=True):
     return warped_image
     # Display the resulting frame
 
-def getGridCells(warped_grid):
-    # TODO: identify the 9 cells (just divide by 3 for now)
-    
-    # TODO: process each of the 9 cells and detect if theres is an X (bonus: detect if there is a O )
+def getGridCells(warped_grid, margin_percent=15):
+    '''
+    Input:
+    warped_grid: image of the the tictactoe grid warped to top down view
+    margin_percent=5: will crop out 10% off each side of each cell, to account for slight differences in grid sizes
+
+    Output:
+    cells: list of 9, cropped grid cells
+    |_0_|_1_|_2_|
+    |_3_|_4_|_5_|
+    |_6_|_7_|_8_|
+    '''
+
+    # make sure wapred_image is binary
+    # _, warped_grid = cv2.threshold(warped_grid, 128, 255, cv2.THRESH_BINARY)
+
     cell_height = warped_grid.shape[0] // 3
     cell_width = warped_grid.shape[1] // 3
+    cells = []
 
-    for i in range(3):
-        # Loop through each column
-        for j in range(3):
-            # Define the region for the current cell
-            left = j * cell_width
-            top = i * cell_height
-            right = left + cell_width
-            bottom = top + cell_height
+    for row in range(3): 
+        for col in range(3):
+            # coords for top left corner
+            top_left_col = col * cell_width
+            top_left_row = row * cell_height
 
             # Crop the image to the current cell
-            cell_image = warped_grid.crop((left, top, right, bottom))
+            cell_image = warped_grid[top_left_row: top_left_row + cell_height, top_left_col : top_left_col + cell_width]
+            
+            # Crop margin off cell
+            crop_width = int(cell_image.shape[1] * margin_percent / 100)
+            crop_height = int(cell_image.shape[0] * margin_percent / 100)
+            cell_image = cell_image[crop_height:-crop_height, crop_width:-crop_width]
 
-            # Add the cropped image to the list
-            warped_grid.append(cell_image)
+            # Add the cropped cell to the list
+            cells.append(cell_image)
+            # cv2.imshow(f'cropped cell {row} {col} ', cell_image)
+            # cv2.waitKey(0)
 
     # Create a new image by pasting the grid images
     # new_image = Image.new('RGB', (width, height))
-
-    # for i in range(3):
-    #     for j in range(3):
-    #         new_image.paste(grid_images[i * 3 + j], (j * cell_width, i * cell_height))
-            
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    return
-
-
-
+    print
+    return cells
 
 def getCamera():
     print('getcamera')
@@ -253,6 +271,57 @@ def getCamera():
     cap.release()
     cv2.destroyAllWindows()
 
+def identifyCell(cell):
+    '''
+    identifies if a cell is empty, 'X', or 'O'
+    Input:
+    cell: binary,thresholded image of a cell
+    '''
+    cell_area = cell.shape[0] * cell.shape[1]
+    print('cell area', cell_area)
+    contours, _ = cv2.findContours(cell, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # If no contours are found, the cell is empty
+    if not contours:
+        return 'Empty'
+    # Loop through each contour
+   
+    for contour in contours:
+        # Calculate the area of the contour
+        area = cv2.contourArea(contour)
+        print('area', area)
+
+        # Define a threshold for contour area (adjust as needed)
+        threshold_area = 100
+
+        # If the contour area is above the threshold, consider it a shape
+        if area > threshold_area:
+            # Calculate the perimeter of the contour
+            perimeter = cv2.arcLength(contour, True)
+
+            # Approximate the contour to a polygon
+            epsilon = 0.02 * perimeter
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+
+            # Get the number of vertices in the polygon
+            num_vertices = len(approx)
+
+            # If it has 4 vertices, it's likely an 'X'
+            if num_vertices == 4:
+                print("X detected")
+            # If it has more than 8 vertices, it's likely an 'O'
+            elif num_vertices > 8:
+                print("O detected")
+
+    
+     
+
+def getGameState(cells):
+    '''
+    cells
+    '''
+    pass
+
 def main():
     #create a 1d array to hold the gamestate
     gamestate = np.array([None,None,None,
@@ -261,8 +330,14 @@ def main():
 
     # Read in video feed 
     warped_grid = processBoard()
+    # warped_grid = cv2.imread('../imgs/cell_1.png')
+    cv2.imshow('warpedgrid', warped_grid)
     cells = getGridCells(warped_grid)
-    print('cells', cells)
+    for cell in cells:
+        cv2.imshow('cell', cell)
+        cv2.waitKey(0)
+        x = identifyCell(cell)
+        print('cell type', x)
     # processCells(warped_board)
     # getCamera()
     
@@ -271,6 +346,7 @@ def main():
         while not isGameOver(state): 
             
     '''
+    
 
 if __name__ == "__main__":
     main()
