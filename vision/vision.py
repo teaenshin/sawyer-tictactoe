@@ -182,8 +182,12 @@ def processBoard(debug=True):
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
-    target_corners = np.array([[0, 0], [target_size - 1, 0], [target_size - 1, target_size - 1], [0, target_size - 1]], dtype=np.float32)
+    target_corners = np.array([[0, 0], [0, target_size - 1], [target_size - 1, 0], [target_size - 1, target_size - 1], ], dtype=np.float32) # (top left, top right, bottom left, bottom right)
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
+    corners = sorted(corners, key=lambda x: x[1])
+    corners = sorted(corners, key=lambda x: x[0]) # sort by row
+    corners = np.array(corners)
+
     print('cornesrs float', corners)
     # TODO: figure out what to do when the grid is not detected
     assert corners.shape == (4, 2), "there should be 4 corners for the grid"
@@ -204,7 +208,7 @@ def getGridCells(warped_grid, margin_percent=15):
     '''
     Input:
     warped_grid: image of the the tictactoe grid warped to top down view
-    margin_percent=5: will crop out 10% off each side of each cell, to account for slight differences in grid sizes
+    margin_percent=5: will crop out 10% off each side of each cell, to account for slight differences in grid sizes. want to crop out grid but not shape. 
 
     Output:
     cells: list of 9, cropped grid cells
@@ -222,7 +226,7 @@ def getGridCells(warped_grid, margin_percent=15):
 
     for row in range(3): 
         for col in range(3):
-            # coords for top left corner
+            # coords for top left corner    
             top_left_col = col * cell_width
             top_left_row = row * cell_height
 
@@ -241,7 +245,6 @@ def getGridCells(warped_grid, margin_percent=15):
 
     # Create a new image by pasting the grid images
     # new_image = Image.new('RGB', (width, height))
-    print
     return cells
 
 def getCamera():
@@ -278,12 +281,21 @@ def identifyCell(cell):
     cell: binary,thresholded image of a cell
     '''
     cell_area = cell.shape[0] * cell.shape[1]
-    print('cell area', cell_area)
+
+
+    # Find contours in the thresholded image
     contours, _ = cv2.findContours(cell, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    # Draw contours on a copy of the original image for visualization
+    contour_image = np.zeros((cell.shape[0], cell.shape[1], 3))
+    cv2.drawContours(contour_image, contours, 0, (255, 0, 0), thickness=cv2.FILLED)
+    cv2.imshow("contour Image", contour_image)
+    cv2.waitKey(0)
+
+    # print('contours', contours)
     # If no contours are found, the cell is empty
     if not contours:
-        return 'Empty'
+        return 'Empty detected'
     # Loop through each contour
    
     for contour in contours:
@@ -292,29 +304,50 @@ def identifyCell(cell):
         print('area', area)
 
         # Define a threshold for contour area (adjust as needed)
-        threshold_area = 100
+        threshold_area = 30
+        circle_threshold_area = 1500
+        X_threshold_area = 60
 
+        if area > circle_threshold_area:
+            return "O detected"
+        elif area > X_threshold_area:
+            return "X detected"
+        elif area > threshold_area:
+            return "Probably empty, but enough area detected that its sus. probably some of the grid not cropped off"
+        else:
+            return "Empty detected"
+        
+        # Approach 1: detect by number of verties. problem: thickeness of marker effects number of vertices
         # If the contour area is above the threshold, consider it a shape
+        '''
         if area > threshold_area:
             # Calculate the perimeter of the contour
             perimeter = cv2.arcLength(contour, True)
 
             # Approximate the contour to a polygon
-            epsilon = 0.02 * perimeter
+            epsilon = 0.01 * perimeter
             approx = cv2.approxPolyDP(contour, epsilon, True)
 
             # Get the number of vertices in the polygon
+            print('approx', approx)
             num_vertices = len(approx)
+            print('num_vertices', num_vertices)
+
+            cell_vertices = np.zeros((cell.shape[0], cell.shape[1], 3))
+            for vertex in approx:
+                
+                cv2.circle(cell_vertices, (vertex[0][0], vertex[0][1]), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
+            # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+            cv2.imshow('largest contour with corners ', cell_vertices)
+            cv2.waitKey(0)
 
             # If it has 4 vertices, it's likely an 'X'
             if num_vertices == 4:
                 print("X detected")
             # If it has more than 8 vertices, it's likely an 'O'
-            elif num_vertices > 8:
+            elif num_vertices >= 8:
                 print("O detected")
-
-    
-     
+        '''
 
 def getGameState(cells):
     '''
@@ -330,10 +363,11 @@ def main():
 
     # Read in video feed 
     warped_grid = processBoard()
-    # warped_grid = cv2.imread('../imgs/cell_1.png')
     cv2.imshow('warpedgrid', warped_grid)
     cells = getGridCells(warped_grid)
-    for cell in cells:
+    for i in range(len(cells)):
+        cell = cells[i]
+        print(f"cell {i}")
         cv2.imshow('cell', cell)
         cv2.waitKey(0)
         x = identifyCell(cell)
