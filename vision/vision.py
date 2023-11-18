@@ -39,7 +39,7 @@ def processBoard(debug=True):
     Identifies and crops to whiteboard. Identifies and crops to tictactoe grid in whiteboard.
     Returns a binary image of the grid warped to top down view. 
     '''
-    img = cv2.imread('../imgs/cam4.jpg')
+    img = cv2.imread('imgs/cam4.jpg')
     # resized_frame = cv2.resize(img, (300, 300))  # TODO # Resize the image for consistency
     resized_frame = img
     ### Crop 
@@ -50,15 +50,11 @@ def processBoard(debug=True):
     ### Preproccess img
     # Convert to grayscale
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('gray', gray)
     # bi = cv2.bilateralFilter(gray, 5, 75, 75)
-    # cv2.imshow('bi',bi)
 
     _, thresh = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY)
-    cv2.imshow("thresh", thresh)
     
     thresh = 255 - thresh # invert so grid becomes white
-    #cv2.imshow('threshold', thresh)
 
     ### Get largest contour, which should be the grid
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -67,20 +63,17 @@ def processBoard(debug=True):
     # Create a mask image for visualization
     mask = cropped_image.copy()
     cv2.drawContours(mask, [largest_contour], 0, 255, thickness=cv2.FILLED)
-    cv2.imshow('largest contour', mask)
 
     epsilon = 0.04 * cv2.arcLength(largest_contour, True)
     approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
 
     ### Get 4 corners of the grid
     corners = approx_polygon.reshape(-1, 2)
-    print(corners)
     # Draw the polygon on the original image
     image_with_polygon = cropped_image.copy()
     for corner in corners:
         cv2.circle(image_with_polygon, corner, 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
     # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-    cv2.imshow('largest contour with corners ', image_with_polygon)
 
     ### warp grid into square
     # Define the four corners of the target square
@@ -91,7 +84,6 @@ def processBoard(debug=True):
     corners = sorted(corners, key=lambda x: x[0]) # sort by row
     corners = np.array(corners)
 
-    print('cornesrs float', corners)
     # TODO: figure out what to do when the grid is not detected
     assert corners.shape == (4, 2), "there should be 4 corners for the grid"
     # Calculate the perspective transformation matrix
@@ -99,10 +91,8 @@ def processBoard(debug=True):
     # Apply the perspective transformation
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
     _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
-    cv2.imshow('warped_image', warped_image)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows() 
+
     
     return warped_image
     # Display the resulting frame
@@ -143,15 +133,12 @@ def getGridCells(warped_grid, margin_percent=15):
 
             # Add the cropped cell to the list
             cells.append(cell_image)
-            # cv2.imshow(f'cropped cell {row} {col} ', cell_image)
-            # cv2.waitKey(0)
 
     # Create a new image by pasting the grid images
     # new_image = Image.new('RGB', (width, height))
     return cells
 
 def getCamera():
-    print('getcamera')
     cap = cv2.VideoCapture(2)
     if not cap.isOpened():
         print("Cannot open camera")
@@ -165,7 +152,6 @@ def getCamera():
             break
         # Display the processed image with grid lines
         cv2.imshow('original', frame)
-        print('frame size', frame.shape)
         cv2.imwrite('imgs/cam1.jpg',frame)
         # Set the frame rate you want to process (1 frame per second).
         fps = 10
@@ -235,6 +221,19 @@ def is_circle(contour, tolerance=0.1):
 
     return similarity < tolerance
 
+def is_x(contour):
+    ##TODO detect if a contour represents an X as opposed to a line, L, 3 lines, or box
+    return True
+
+def only_near_edges(contour, width, height):
+    for point in contour:
+        x , y = point[0]
+        x_block = width*0.1
+        y_block = height*0.1
+        if x_block<x<width-x_block and y_block<y<height-y_block:
+            return False
+    return True
+
 def identifyCell(cell):
     '''
     identifies if a cell is empty, 'X', or 'O'
@@ -253,62 +252,23 @@ def identifyCell(cell):
     cv2.imshow("contour Image", contour_image)
     cv2.waitKey(0)
 
-    # print('contours', contours)
-    # If no contours are found, the cell is empty
+
     if not contours:
-        return 'Empty detected'
-    # Loop through each contour
+        return ""
    
-    for contour in contours:
-        # Calculate the area of the contour
+    for contour in sorted(contours, key=cv2.contourArea, reverse=True):
         area = cv2.contourArea(contour)
-        print('area', area)
 
-        # Define a threshold for contour area (adjust as needed)
-        threshold_area = 30
-        circle_threshold_area = 1500
-        X_threshold_area = 60
-
-        if area > circle_threshold_area:
-            return "O detected"
-        elif area > X_threshold_area:
-            return "X detected"
-        elif area > threshold_area:
-            return "Probably empty, but enough area detected that its sus. probably some of the grid not cropped off"
-        else:
-            return "Empty detected"
+        threshold_area = 30 # Adjust this if needed
+        if area < threshold_area:
+            return ""
         
-        # Approach 1: detect by number of verties. problem: thickeness of marker effects number of vertices
-        # If the contour area is above the threshold, consider it a shape
-        '''
-        if area > threshold_area:
-            # Calculate the perimeter of the contour
-            perimeter = cv2.arcLength(contour, True)
-
-            # Approximate the contour to a polygon
-            epsilon = 0.01 * perimeter
-            approx = cv2.approxPolyDP(contour, epsilon, True)
-
-            # Get the number of vertices in the polygon
-            print('approx', approx)
-            num_vertices = len(approx)
-            print('num_vertices', num_vertices)
-
-            cell_vertices = np.zeros((cell.shape[0], cell.shape[1], 3))
-            for vertex in approx:
-                
-                cv2.circle(cell_vertices, (vertex[0][0], vertex[0][1]), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
-            # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-            cv2.imshow('largest contour with corners ', cell_vertices)
-            cv2.waitKey(0)
-
-            # If it has 4 vertices, it's likely an 'X'
-            if num_vertices == 4:
-                print("X detected")
-            # If it has more than 8 vertices, it's likely an 'O'
-            elif num_vertices >= 8:
-                print("O detected")
-        '''
+        if is_circle(contour) or is_oval(contour):
+            return "O"
+        elif not only_near_edges(contour, cell.shape[1], cell.shape[0]):
+            return "X"
+        
+    return ""
 
 def getGameState(cells):
     '''
@@ -324,13 +284,9 @@ def main():
 
     # Read in video feed 
     warped_grid = processBoard()
-    cv2.imshow('warpedgrid', warped_grid)
     cells = getGridCells(warped_grid)
     for i in range(len(cells)):
         cell = cells[i]
-        print(f"cell {i}")
-        cv2.imshow('cell', cell)
-        cv2.waitKey(0)
         x = identifyCell(cell)
         print('cell type', x)
     # processCells(warped_board)
