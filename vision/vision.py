@@ -1,103 +1,6 @@
 import cv2
 import numpy as np
 from PIL import Image
-'''
-def identifyLines():
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print("Cannot open camera")
-        exit()
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        # if frame is read correctly ret is True
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-        
-        # Preprocess the image (resize, convert to grayscale, etc.)
-        resized_frame = cv2.resize(frame, (300, 300))  # Resize the image for consistency
-        # Convert to HSV (Hue, Saturation, Value) color space to facilitate color filtering
-        hsv = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2HSV)
-
-        # Define range of black color in HSV
-        lower_black = np.array([0, 0, 0])
-        upper_black = np.array([180, 255, 100])  # You might need to adjust these values
-
-        # Threshold the HSV image to get only black colors
-        black_mask = cv2.inRange(hsv, lower_black, upper_black)
-
-        # Bitwise-AND mask and original image to isolate the color
-        result = cv2.bitwise_and(resized_frame, resized_frame, mask=black_mask)
-        cv2.imshow('result mask', result)
-        gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        edges = cv2.Canny(blurred, 50, 150)
-        # print('edges', edges)
-
-        # Find lines using the Hough Line Transform
-        # HoughLinesP(lines, pixel accuracy, angle accuracy, threshold/min num points on line)
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, 80)  
-        # lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=50, maxLineGap=10)
-        # print('lines', lines)
-    source ~ee106a/sawyer_setup.bash
-        # Identify grid lines (vertical and horizontal)
-        horizontal_lines = []
-        vertical_lines = []
-        # print('horizontal_lines', horizontal_lines)
-        # print('vertical_lines', vertical_lines)
-        # for x1,y1,x2,y2 in lines[0]: # TODO: for HoughLinesP
-        #     cv2.line(resized_frame,(x1,y1),(x2,y2),(0,255,0),2)
-
-        # for HoughLines() 
-        if lines is not None:
-            for line in lines:
-                rho, theta = line[0]
-                if np.pi / 4 < theta < 3 * np.pi / 4:  # Horizontal lines
-                    horizontal_lines.append(line)
-                else:  # Vertical lines
-                    vertical_lines.append(line)
-        # Draw the grid lines on the image
-        for line in horizontal_lines:
-            rho, theta = line[0]
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-            cv2.line(resized_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-        for line in vertical_lines:
-            rho, theta = line[0]
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-            cvsource ~ee106a/sawyer_setup.bash2.line(resized_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-        # Display the processed image with grid lines
-        cv2.imshow('original', frame)
-        cv2.imshow('Tic-Tac-Toe Grid Detection', resized_frame)
-        # cv2.waitKey(0)
-        
-        # Set the frame rate you want to process (1 frame per second).
-        fps = 10
-        delay = int(1000 / fps)  # Delay in milliseconds
-        if cv2.waitKey(delay) == ord('q'):
-            print("Stopped video processing")
-            break
-        
-    # Release the video capture and close all OpenCV windows.
-    cap.release()
-    cv2.destroyAllWindows()
-'''
 
 ###########
 
@@ -273,6 +176,64 @@ def getCamera():
     # Release the video capture and close all OpenCV windows.
     cap.release()
     cv2.destroyAllWindows()
+
+
+def is_oval(contour, tolerance=0.1):
+    """
+    Determine if a contour is an oval.
+
+    Args:
+    contour (np.ndarray): The contour to be checked.
+    tolerance (float): Tolerance for the approximation. Higher means less strict.
+
+    Returns:
+    bool: True if the contour is an oval, False otherwise.
+    """
+    # Approximate the contour and check if the shape is closed
+    epsilon = 0.02 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+
+    if len(approx) < 5:  # Ovals will have many points in their approximation
+        return False
+
+    # Fit an ellipse to the contour and compare the shapes
+    ellipse = cv2.fitEllipse(approx)
+    ellipse_contour = cv2.ellipse2Poly((int(ellipse[0][0]), int(ellipse[0][1])), (int(ellipse[1][0] / 2), int(ellipse[1][1] / 2)), int(ellipse[2]), 0, 360, 1)
+
+    # Compare the fitted ellipse with the original contour
+    similarity = cv2.matchShapes(contour, ellipse_contour, 1, 0.0)
+
+    return similarity < tolerance
+
+def is_circle(contour, tolerance=0.1):
+    """
+    Determine if a contour is a circle.
+
+    Args:
+    contour (np.ndarray): The contour to be checked.
+    tolerance (float): Tolerance for the circle approximation. Lower value means stricter circle detection.
+
+    Returns:
+    bool: True if the contour is a circle, False otherwise.
+    """
+    # Approximate the contour to a simpler shape
+    epsilon = 0.02 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    if len(approx) < 5 or len(approx) > 10:
+        return False
+
+    # Fit a circle to the contour
+    (x, y), radius = cv2.minEnclosingCircle(approx)
+
+    # Create a perfect circle contour for comparison
+    center = (int(x), int(y))
+    radius = int(radius)
+    circle_contour = np.array([[[int(x + radius * np.cos(theta)), int(y + radius * np.sin(theta))]] for theta in np.linspace(0, 2 * np.pi, 360)], dtype=np.int32)
+
+    # Compare the fitted circle with the original contour
+    similarity = cv2.matchShapes(contour, circle_contour, 1, 0.0)
+
+    return similarity < tolerance
 
 def identifyCell(cell):
     '''
