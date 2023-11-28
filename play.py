@@ -81,9 +81,34 @@ def getOptimalMove(state):
     return index into board of optimal move for robot to make
     assumes the game is not over 
     '''
-    #TODO
-    #start with random
-    pass 
+
+    empty = getPossibleMoves(state)
+
+    wins = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], #rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], #cols
+        [0, 4, 8], [2, 4, 6] #diagonals
+    ]
+
+    # check if robot has 2 pieces in a row - place in third place if empty to win
+    for w in wins:
+        entries = [state[i] for i in w] 
+        if (entries.count('X') == 2) and None in entries:
+            return [i for i in w if i in empty][0]
+
+    # check if opponent has any 2 pieces in a row - if so block third piece if empty to prevent win
+    for w in wins:
+        entries = [state[i] for i in w] 
+        if (entries.count('O') == 2) and None in entries:
+            return [i for i in w if i in empty][0]
+
+    # check if empty spot next to any robot pieces - then move next to it
+
+    # else pick a random move in empty pieces
+    return empty[0]
+
+    
+
 
 def processBoard():
     '''
