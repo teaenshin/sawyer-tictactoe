@@ -1,7 +1,13 @@
 import cv2
 import numpy as np
 from PIL import Image
+import pyrealsense2 as rs
 
+# Configure depth and color streams for the Real Sense Camera
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+pipeline_started = False
 ###########
 
 def get_whiteboard(color_image):
@@ -25,6 +31,15 @@ def get_whiteboard(color_image):
     # Find the largest contour by area
     largest_contour = max(contours, key=cv2.contourArea)
     return largest_contour
+
+def get_contour_center(contour):
+    M = cv2.moments(contour)
+    if M["m00"] != 0:
+        center_x = int(M["m10"] / M["m00"])
+        center_y = int(M["m01"] / M["m00"])
+    else:
+        center_x, center_y = 0, 0
+    return center_x, center_y
 
 def crop_image(image, contour):
     '''
@@ -164,6 +179,22 @@ def getCamera():
     cv2.destroyAllWindows()
 
 
+def get_color_image():
+    if not pipeline_started:
+        pipeline.start(config)
+        pipeline_started = True
+    color_image = None
+    i = 0
+    while not color_image and i < 5:
+        i+=1
+        frames = pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+        if not color_frame:
+            continue
+        color_image = np.asanyarray(color_frame.get_data())
+    return color_image
+
+
 def is_oval(contour, tolerance=0.1):
     """
     Determine if a contour is an oval.
@@ -270,11 +301,58 @@ def identifyCell(cell):
         
     return ""
 
-def getGameState(cells):
-    '''
-    cells
-    '''
-    pass
+def getBoard(cropped_image):
+    gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
+    # bi = cv2.bilateralFilter(gray, 5, 75, 75)
+
+    _, thresh = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY)
+    
+    thresh = 255 - thresh # invert so grid becomes white
+
+    ### Get largest contour, which should be the grid
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find the largest contour based on area
+    largest_contour = max(contours, key=cv2.contourArea)
+    # Create a mask image for visualization
+    mask = cropped_image.copy()
+    cv2.drawContours(mask, [largest_contour], 0, 255, thickness=cv2.FILLED)
+
+    epsilon = 0.04 * cv2.arcLength(largest_contour, True)
+    approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+    ### Get 4 corners of the grid
+    corners = approx_polygon.reshape(-1, 2)
+    # Draw the polygon on the original image
+    image_with_polygon = cropped_image.copy()
+    for corner in corners:
+        cv2.circle(image_with_polygon, corner, 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
+    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+
+    ### warp grid into square
+    # Define the four corners of the target square
+    target_size = 300
+    target_corners = np.array([[0, 0], [0, target_size - 1], [target_size - 1, 0], [target_size - 1, target_size - 1], ], dtype=np.float32) # (top left, top right, bottom left, bottom right)
+    corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
+    corners = sorted(corners, key=lambda x: x[1])
+    corners = sorted(corners, key=lambda x: x[0]) # sort by row
+    corners = np.array(corners)
+    board = [""]*9
+    if corners.shape !=(4, 2):
+        return board
+    # Calculate the perspective transformation matrix
+    transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
+    # Apply the perspective transformation
+    warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
+    _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
+
+    cells = getGridCells(warped_image)
+
+    
+    for i in range(9):
+        val = identifyCell(cells[i])
+        board[i] = val
+    return board
+
 
 def main():
     #create a 1d array to hold the gamestate
