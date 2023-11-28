@@ -4,6 +4,9 @@ import rospy
 import sys
 import utils
 
+#TODO define BOARD DATA (msg)
+# Import definition of DRAW REQUESt (srv)
+
 class RootNode:
     def __init__(self) -> None:
         rospy.init_node('root_node')
@@ -46,7 +49,7 @@ class RootNode:
     def call_service(self, x):
         rospy.wait_for_service('/draw')
         try:
-            service = rospy.ServiceProxy('/draw', SERVICE_TYPE)
+            service = rospy.ServiceProxy('/draw', DRAW_REQUEST)
             resp = service(x)
             return resp.success, resp.message
         except rospy.ServiceException as e:

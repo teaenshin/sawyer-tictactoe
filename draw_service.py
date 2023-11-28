@@ -1,8 +1,11 @@
 import rospy
 
+#TODO define what a draw request (srv) is and a draw response (msg) is
+
 
 def handle_service_request(req):
     print("Received request: %s" % req.data)
+    #TODO upon recieving a draw request call the code to actually draw the X or line
     response = "Received: " + str(req.data)
     return DRAW_RESPONSE(True, response)
 
