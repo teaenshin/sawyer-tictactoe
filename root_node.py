@@ -23,14 +23,13 @@ class RootNode:
         else:
             new_board = board.data
             #loop through board and if a previously empty spot is now filled update
-            for row in range(2):
-                for col in range(2):
-                    if not self.board[row][col] and new_board[row][col]:
-                        self.board[row][col] = new_board[row][col]
-                        updated = new_board[row][col]
+            for spot in range(9):
+                if not self.board[spot] and new_board[spot]:
+                    self.board[spot] = new_board[spot]
+                    updated = new_board[spot]
         
         if updated:
-            self.update(new_board[row][col])
+            self.update(updated)
 
     # player is either X or O and depending on which one it is we act accordingly
     def update(self, player):
