@@ -10,7 +10,7 @@ import utils
 class RootNode:
     def __init__(self) -> None:
         rospy.init_node('root_node')
-        rospy.Subscriber("vision_node", BOARD_DATA, self.board_callback)
+        rospy.Subscriber("board_data_topic", BOARD_DATA, self.board_callback)
         self.board = None
         self.game_over = False
 

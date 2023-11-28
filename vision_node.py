@@ -8,16 +8,20 @@ class VisionNode:
         self.publisher = rospy.Publisher('board_data_topic', BOARD_DATA, queue_size=10)
         self.rate = rospy.Rate(1)  # 1 Hz
         self.whiteboard = None
+
+
+    def setup_vision(self):
         while True:
             color_image = get_color_image()
             self.whiteboard = get_whiteboard(color_image)
             cropped_image = crop_image(color_image, self.whiteboard)
             cv2.imshow("Cropped", cropped_image)
-            user_input = input("Press Y and Enter if Good, any other key if not")
-            if user_input == "Y":
+            print("Press y if it looks good")
+            if cv2.waitKey(0) & 0xFF == ord('y'):
                 break
-        
+        cv2.destroyAllWindows()
 
+        
     def publish_board_data(self):
         while not rospy.is_shutdown():
             board_data = BOARD_DATA()
@@ -35,4 +39,5 @@ class VisionNode:
 
 if __name__ == '__main__':
     node = VisionNode()
+    node.setup_vision()
     node.publish_board_data()
