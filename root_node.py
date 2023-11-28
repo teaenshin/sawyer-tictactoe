@@ -46,7 +46,7 @@ class RootNode:
         
 
 
-    def call_service(self, x):
+    def call_draw_service(self, x):
         rospy.wait_for_service('/draw')
         try:
             service = rospy.ServiceProxy('/draw', DRAW_REQUEST)
