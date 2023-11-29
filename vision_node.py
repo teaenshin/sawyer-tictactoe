@@ -5,7 +5,7 @@ from vision.vision import *
 class VisionNode:
     def __init__(self):
         rospy.init_node('vision_node')
-        self.publisher = rospy.Publisher('board_data_topic', BOARD_DATA, queue_size=10)
+        self.publisher = rospy.Publisher('board_data_topic', BOARD_DATA, queue_size=1)
         self.rate = rospy.Rate(1)  # 1 Hz
         self.whiteboard = None
 
