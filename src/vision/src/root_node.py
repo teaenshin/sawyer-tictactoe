@@ -2,7 +2,7 @@
 import numpy as np
 import rospy
 import sys
-import utils
+import vision.src.utils as utils
 from vision.msg import BoardData
 
 # Import definition of DRAW REQUESt (srv)
