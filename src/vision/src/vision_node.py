@@ -49,6 +49,7 @@ class VisionNode:
     
 
 if __name__ == '__main__':
+    print("hi")
     node = VisionNode()
     node.setup_vision()
     node.publish_board_data()
