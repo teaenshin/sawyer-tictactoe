@@ -44,7 +44,7 @@ def crop_image(image, contour):
     '''
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
-    blackout(cropped_image)
+    blackout(cropped_image, contour)
     return cropped_image
 
 def blackout(image, contour):
