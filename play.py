@@ -45,6 +45,13 @@ def getWinningThree(state):
     # no valid three in a row was found
     return None
 
+def getRobotWin(state):
+
+    win = getWinningThree(state)
+
+    if getWinner(state) == "robot":
+        return win
+
 
 def getWinner(state):
     '''

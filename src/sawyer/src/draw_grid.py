@@ -135,7 +135,7 @@ def main():
                 group.execute(plan[1])  
 
 
-            for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [0.694, 0.158, 0.525]: # last coord is tuck
+            for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
                     
                 # Set the desired orientation for the end effector HERE (marker touches board)
                 request.ik_request.pose_stamped.pose.position.x = x1
