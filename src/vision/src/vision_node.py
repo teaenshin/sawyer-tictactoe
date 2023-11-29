@@ -46,12 +46,7 @@ class VisionNode:
 
     def get_board(self):
         color_image = self.get_color_image()
-        img = cv2.imread('/home/cc/ee106a/fa23/class/ee106a-aem/sawyer-tictactoe/src/vision/src/imgs/cam4.jpg')
-        # cv2.imshow('cam4', img)
-        #self.whiteboard = get_whiteboard(img)
         cropped_image = crop_image(color_image, self.whiteboard)
-        cv2.imshow('croped image debug', cropped_image)
-        cv2.waitKey(0)
         return getBoard(cropped_image)
     
 

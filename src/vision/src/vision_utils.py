@@ -53,7 +53,7 @@ def blackout(image, contour):
     # Convert the mask to grayscale
     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     # Set pixels outside the contour to black in the original image
-    image[mask == 0] = [0, 0, 0]
+    image[mask == 0] = [255, 255, 255]
 
 
 def processBoard(debug=True):
@@ -192,7 +192,7 @@ def getCamera():
     cv2.destroyAllWindows() 
 
 
-def is_oval(contour, tolerance=0.1):
+def is_oval(contour, tolerance=0.2):
     """
     Determine if a contour is an oval.
 
@@ -206,7 +206,7 @@ def is_oval(contour, tolerance=0.1):
     # Approximate the contour and check if the shape is closed
     epsilon = 0.02 * cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, epsilon, True)
-
+    print("num points", len(approx))
     if len(approx) < 5:  # Ovals will have many points in their approximation
         return False
 
@@ -216,10 +216,11 @@ def is_oval(contour, tolerance=0.1):
 
     # Compare the fitted ellipse with the original contour
     similarity = cv2.matchShapes(contour, ellipse_contour, 1, 0.0)
+    print(similarity, "similarity")
 
     return similarity < tolerance
 
-def is_circle(contour, tolerance=0.1):
+def is_circle(contour, tolerance=0.2):
     """
     Determine if a contour is a circle.
 
@@ -277,9 +278,8 @@ def identifyCell(cell):
     # Draw contours on a copy of the original image for visualization
     contour_image = np.zeros((cell.shape[0], cell.shape[1], 3))
     cv2.drawContours(contour_image, contours, 0, (255, 0, 0), thickness=cv2.FILLED)
-    # cv2.imshow("contour Image", contour_image)
-    # cv2.waitKey(0)
-
+    cv2.imshow("contour Image", contour_image)
+    cv2.waitKey(0)
 
     if not contours:
         return ""
@@ -314,29 +314,31 @@ def getBoard(cropped_image):
     mask = cropped_image.copy()
     cv2.drawContours(mask, [largest_contour], 0, 255, thickness=cv2.FILLED)
 
-    cv2.imshow('mask', mask)
-    cv2.waitKey(0)
-
     epsilon = 0.04 * cv2.arcLength(largest_contour, True)
     approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
 
     ### Get 4 corners of the grid
     corners = approx_polygon.reshape(-1, 2)
     # Draw the polygon on the original image
-    image_with_polygon = cropped_image.copy()
+    # image_with_polygon = cropped_image.copy()
     # for corner in corners:
-    #     cv2.circle(image_with_polygon, corner, 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
+    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
     # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+    # cv2.imshow('corners', image_with_polygon)
+    # cv2.waitKey(0)
 
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
     target_corners = np.array([[0, 0], [0, target_size - 1], [target_size - 1, 0], [target_size - 1, target_size - 1], ], dtype=np.float32) # (top left, top right, bottom left, bottom right)
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    corners = sorted(corners, key=lambda x: x[1])
-    corners = sorted(corners, key=lambda x: x[0]) # sort by row
+    top_corners = sorted(corners[:2], key=lambda x:x[0])
+    top_corners = sorted(top_corners, key=lambda x:x[1])
+    bottom_corners = sorted(corners[2:], key=lambda x: x[0])
+    bottom_corners = sorted(bottom_corners[:2], key=lambda x:x[1])
+
+    corners = np.array(top_corners + bottom_corners, dtype=np.float32)
     corners = np.array(corners)
-    print('corners', corners)
     board = [""]*9
     if corners.shape !=(4, 2):
         cv2.destroyAllWindows()
@@ -345,25 +347,17 @@ def getBoard(cropped_image):
     # Calculate the perspective transformation matrix
     transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
     # Apply the perspective transformation
-    cv2.imshow('thresh', thresh)
-    cv2.waitKey(0)
-
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
-
-    cv2.imshow('warped_image after warp perspect8ive', warped_image)
-    cv2.waitKey(0)
-
     _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
-
     cv2.imshow('warped_image after threshold', warped_image)
     cv2.waitKey(0)
 
     cells = getGridCells(warped_image)
 
-    
     for i in range(9):
         val = identifyCell(cells[i])
         board[i] = val
+        print('val: ', val)
     cv2.waitKey(0)
 
     cv2.destroyAllWindows() 
