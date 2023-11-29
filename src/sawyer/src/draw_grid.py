@@ -36,7 +36,7 @@ def main():
         request.ik_request.group_name = "right_arm"
 
         # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "right_gripper_tip"
+        link = "stp_022310TP99251_tip" #"right_gripper_tip"
 
         request.ik_request.ik_link_name = link
         # request.ik_request.attempts = 20
@@ -48,16 +48,16 @@ def main():
 
         width = 0.2
         offs = width/3
-        height = 0.05
+        height = 0.02
         
         try:
-            trans = tfBuffer.lookup_transform("base", "right_gripper_tip", rospy.Time())   # TODO: may need to update frames
+            trans = tfBuffer.lookup_transform("base", "stp_022310TP99251_tip", rospy.Time())   # TODO: may need to update frames
             # trans.transform.translation gives current x, y, z
             
             # find curr location of end effector:
-            x = 0.579 #trans.transform.translation.x   # TODO: grid loc x
-            y = 0.165 #trans.transform.translation.y   # TODO: grid loc y
-            z = -0.145 # trans.transform.translation.z   # TODO: grid loc z (marker lifted)
+            x = trans.transform.translation.x   # TODO: grid loc x
+            y = trans.transform.translation.y   # TODO: grid loc y
+            z = 0.016 #trans.transform.translation.z   # TODO: grid loc z (marker lifted)
             
             # trans.transform.translation gives current x, y, z
             locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), # border horizontal
@@ -73,66 +73,105 @@ def main():
                     
                     ]
             
-            new_locs = [[x1, y1, z1, 0, 1, 0, 0] for x1, y1, z1 in locs]
-            response = compute_ik(request)
+            # new_locs = [[x1, y1, z1, 0, 1, 0, 0] for x1, y1, z1 in locs]
+            # response = compute_ik(request)
                     
-            # Print the response HERE
-            print(response)
-            group = MoveGroupCommander("right_arm")
+            # # Print the response HERE
+            # print(response)
+            # group = MoveGroupCommander("right_arm")
 
-            # Setting position and orientation target
-            group.set_pose_targets(new_locs)
+            # # Setting position and orientation target
+            # group.set_pose_targets(new_locs)
 
-            # Plan IK
-            plan = group.plan()
-            user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            # # Plan IK
+            # plan = group.plan()
+            # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
             
-            # # Execute IK if safe
-            # # if user_input == 'y':
-            # #     group.execute(plan[1])
+            # # # Execute IK if safe
+            # # # if user_input == 'y':
+            # # #     group.execute(plan[1])
 
-            # while user_input == 'n':
-            #     plan = group.plan()
-            #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            # # while user_input == 'n':
+            # #     plan = group.plan()
+            # #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
             
-            if user_input == 'y':  
-                group.execute(plan[1])
+            # if user_input == 'y':  
+            #     group.execute(plan[1])
             
             # for i in range(2):
-            #     for x1, y1, z1 in locs:
+            for x1, y1, z1 in locs:
                     
-            #         # Set the desired orientation for the end effector HERE (marker touches board)
-            #         request.ik_request.pose_stamped.pose.position.x = x1
-            #         request.ik_request.pose_stamped.pose.position.y = y1
-            #         request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
+                    # Set the desired orientation for the end effector HERE (marker touches board)
+                request.ik_request.pose_stamped.pose.position.x = x1
+                request.ik_request.pose_stamped.pose.position.y = y1
+                request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
 
-            #         # move robot to loc 1
-            #         # Send the request to the service
-            #         response = compute_ik(request)
+                # move robot to loc 1
+                # Send the request to the service
+                response = compute_ik(request)
+                
+                # Print the response HERE
+                print(response)
+                group = MoveGroupCommander("right_arm")
+
+                # Setting position and orientation target
+                group.set_pose_target(request.ik_request.pose_stamped)
+
+                # Plan IK
+                plan = group.plan()
+                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                
+                # # Execute IK if safe
+                # # if user_input == 'y':
+                # #     group.execute(plan[1])
+
+                # while user_input == 'n':
+                #     plan = group.plan()
+                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+                
+                # if user_input == 'y':
+                group.execute(plan[1])  
+
+
+            for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [0.694, 0.158, 0.525]: # last coord is tuck
                     
-            #         # Print the response HERE
-            #         print(response)
-            #         group = MoveGroupCommander("right_arm")
+                # Set the desired orientation for the end effector HERE (marker touches board)
+                request.ik_request.pose_stamped.pose.position.x = x1
+                request.ik_request.pose_stamped.pose.position.y = y1
+                request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
 
-            #         # Setting position and orientation target
-            #         group.set_pose_target(request.ik_request.pose_stamped)
+                # move robot to loc 1
+                # Send the request to the service
+                response = compute_ik(request)
+                
+                # Print the response HERE
+                print(response)
+                group = MoveGroupCommander("right_arm")
 
-            #         # Plan IK
-            #         plan = group.plan()
-            #         # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
-                    
-            #         # # Execute IK if safe
-            #         # # if user_input == 'y':
-            #         # #     group.execute(plan[1])
+                # Setting position and orientation target
+                group.set_pose_target(request.ik_request.pose_stamped)
 
-            #         # while user_input == 'n':
-            #         #     plan = group.plan()
-            #         #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                # Plan IK
+                plan = group.plan()
+                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                
+                # # Execute IK if safe
+                # # if user_input == 'y':
+                # #     group.execute(plan[1])
 
-                    
-            #         # if user_input == 'y':
-            #         group.execute(plan[1])  
+                # while user_input == 'n':
+                #     plan = group.plan()
+                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+                
+                # if user_input == 'y':
+                group.execute(plan[1])  
+            # ---------------------------------------------
+            # 
+            # 
+            #     
             # ---------------------------------------------  
 
             # # move robot to loc 2 (draw first line of X)
