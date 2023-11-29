@@ -14,7 +14,8 @@ class RootNode:
         self.board = None
         self.game_over = False
 
-
+    # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
+    # In that case we would add a timer and ensure there is a minimum time buffer between callbacks
     def board_callback(self, board):
         rospy.loginfo(rospy.get_caller_id() + " received data: %s", board.data)
         updated = None
@@ -40,9 +41,30 @@ class RootNode:
                 pass
         else:
             if player == "O":
-                #TODO call the regular turn functionality here
-                pass
+                move = self.pick_move()
+                #TODO call the draw x function here using move
         
+    def pick_move(self):
+        # If center is still open go center this will happen in the first two turns for sure
+        if self.board[4] == "":
+            return 4
+        # Otherwise loop through all open spots
+        # If any spot either gives you the win, or would give the other player the win, pick it
+        for i in range(9):
+            if self.board[i] == "":
+                temp_board = self.board.copy()
+                temp_board[i] = "X"
+                if utils.check_win(temp_board):
+                    return i
+                temp_board[i] = "O"
+                if utils.check_win(temp_board):
+                    return i
+        
+        # If neither of those pick the first open spot
+        #TODO better strategy
+        for i in range(9):
+            if self.board[i] == "":
+                return i
 
 
     def call_draw_service(self, x):
