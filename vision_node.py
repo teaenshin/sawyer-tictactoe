@@ -1,11 +1,11 @@
 import rospy
-import BOARD_DATA 
+from package_name.msg import BoardData
 from vision.vision import *
 
 class VisionNode:
     def __init__(self):
         rospy.init_node('vision_node')
-        self.publisher = rospy.Publisher('board_data_topic', BOARD_DATA, queue_size=1)
+        self.publisher = rospy.Publisher('board_data_topic', BoardData, queue_size=1)
         self.rate = rospy.Rate(1)  # 1 Hz
         self.whiteboard = None
 
@@ -24,7 +24,7 @@ class VisionNode:
         
     def publish_board_data(self):
         while not rospy.is_shutdown():
-            board_data = BOARD_DATA()
+            board_data = BoardData()
             board_data.data = self.get_board()
             rospy.loginfo("Publishing board data: %s", board_data.data)
             self.publisher.publish(board_data)
