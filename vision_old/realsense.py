@@ -60,10 +60,45 @@ def get_contour_center(contour):
     return center_x, center_y
 
 
-# Configure depth and color streams
+
+ctx = rs.context()
+if len(ctx.devices) > 0:
+
+    for d in ctx.devices:
+
+        print ('Found device: ', \
+
+                d.get_info(rs.camera_info.name), ' ', \
+
+                d.get_info(rs.camera_info.serial_number))
+
+else:
+
+    print("No Intel Device connected")
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+# Get device product line for setting a supporting resolution
+pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+pipeline_profile = config.resolve(pipeline_wrapper)
+device = pipeline_profile.get_device()
+device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+found_rgb = False
+for s in device.sensors:
+    if s.get_info(rs.camera_info.name) == 'RGB Camera':
+        found_rgb = True
+        break
+if not found_rgb:
+    print("The demo requires Depth camera with Color sensor")
+    exit(0)
+
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+
+if device_product_line == 'L500':
+    config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
+else:
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Start streaming
 pipeline.start(config)
@@ -76,6 +111,7 @@ try:
             continue
         color_image = np.asanyarray(color_frame.get_data())
         cv2.imwrite('imgs/cam2.jpg',color_image)
+        print("hi")
         
         largest_contour = get_whiteboard(color_image)
         center_coords = get_contour_center(largest_contour)

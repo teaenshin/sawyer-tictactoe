@@ -1,6 +1,6 @@
 import rospy
-from package_name.msg import BoardData
-from vision.vision import *
+from vision.msg import BoardData
+from vision_utils import *
 
 class VisionNode:
     def __init__(self):
