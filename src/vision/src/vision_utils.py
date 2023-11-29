@@ -4,10 +4,6 @@ from PIL import Image
 import pyrealsense2 as rs
 
 # Configure depth and color streams for the Real Sense Camera
-pipeline = rs.pipeline()
-config = rs.config()
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-pipeline_started = False
 ###########
 
 def get_whiteboard(color_image):
@@ -154,45 +150,35 @@ def getGridCells(warped_grid, margin_percent=15):
     return cells
 
 def getCamera():
-    cap = cv2.VideoCapture(2)
-    if not cap.isOpened():
-        print("Cannot open camera")
+    # define a video capture object 
+    vid = cv2.VideoCapture(0) 
+    if not vid.isOpened():
+        print("Error could not open camera")
         exit()
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        # if frame is read correctly ret is True
+    vid.set(cv2.CAP_PROP_FPS, 30) # set frame rate
+    while(True): 
+        
+        # Capture the video frame 
+        # by frame 
+        ret, frame = vid.read() 
+
         if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
+            print("Error could not read frame")
+            exit()
+    
+        # Display the resulting frame 
+        cv2.imshow('frame', frame) 
+        
+        # the 'q' button is set as the 
+        # quitting button you may use any 
+        # desired button of your choice 
+        if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
-        # Display the processed image with grid lines
-        cv2.imshow('original', frame)
-        cv2.imwrite('imgs/cam1.jpg',frame)
-        # Set the frame rate you want to process (1 frame per second).
-        fps = 10
-        delay = int(1000 / fps)  # Delay in milliseconds
-        if cv2.waitKey(delay) == ord('q'):
-            print("Stopped video processing")
-            break
-    # Release the video capture and close all OpenCV windows.
-    cap.release()
-    cv2.destroyAllWindows()
-
-
-def get_color_image():
-    if not pipeline_started:
-        pipeline.start(config)
-        pipeline_started = True
-    color_image = None
-    i = 0
-    while not color_image and i < 5:
-        i+=1
-        frames = pipeline.wait_for_frames()
-        color_frame = frames.get_color_frame()
-        if not color_frame:
-            continue
-        color_image = np.asanyarray(color_frame.get_data())
-    return color_image
+    
+    # After the loop release the cap object 
+    vid.release() 
+    # Destroy all the windows 
+    cv2.destroyAllWindows() 
 
 
 def is_oval(contour, tolerance=0.1):
@@ -361,6 +347,8 @@ def main():
                         None,None,None])
 
     # Read in video feed 
+    getCamera()
+    print('get camera done')
     warped_grid = processBoard()
     cells = getGridCells(warped_grid)
     for i in range(len(cells)):
@@ -368,7 +356,6 @@ def main():
         x = identifyCell(cell)
         print('cell type', x)
     # processCells(warped_board)
-    # getCamera()
     
     '''
     if board is done drawing:
