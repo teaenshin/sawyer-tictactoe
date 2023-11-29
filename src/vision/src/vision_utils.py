@@ -278,8 +278,8 @@ def identifyCell(cell):
     # Draw contours on a copy of the original image for visualization
     contour_image = np.zeros((cell.shape[0], cell.shape[1], 3))
     cv2.drawContours(contour_image, contours, 0, (255, 0, 0), thickness=cv2.FILLED)
-    cv2.imshow("contour Image", contour_image)
-    cv2.waitKey(0)
+    # cv2.imshow("contour Image", contour_image)
+    # cv2.waitKey(0)
 
     if not contours:
         return ""
@@ -349,8 +349,8 @@ def getBoard(cropped_image):
     # Apply the perspective transformation
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
     _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
-    cv2.imshow('warped_image after threshold', warped_image)
-    cv2.waitKey(0)
+    # cv2.imshow('warped_image after threshold', warped_image)
+    # cv2.waitKey(0)
 
     cells = getGridCells(warped_image)
 
@@ -358,9 +358,8 @@ def getBoard(cropped_image):
         val = identifyCell(cells[i])
         board[i] = val
         print('val: ', val)
-    cv2.waitKey(0)
 
-    cv2.destroyAllWindows() 
+    # cv2.destroyAllWindows() 
 
     return board
 

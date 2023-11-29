@@ -3,7 +3,7 @@ import numpy as np
 import rospy
 import sys
 import utils
-from package_name.msg import BoardData
+from vision.msg import BoardData
 
 # Import definition of DRAW REQUESt (srv)
 
@@ -67,14 +67,14 @@ class RootNode:
                 return i
 
 
-    def call_draw_service(self, x):
-        rospy.wait_for_service('/draw')
-        try:
-            service = rospy.ServiceProxy('/draw', DRAW_REQUEST)
-            resp = service(x)
-            return resp.success, resp.message
-        except rospy.ServiceException as e:
-            rospy.logerr("Service call failed: %s", e)
+    # def call_draw_service(self, x):
+    #     rospy.wait_for_service('/draw')
+    #     try:
+    #         service = rospy.ServiceProxy('/draw', DRAW_REQUEST)
+    #         resp = service(x)
+    #         return resp.success, resp.message
+    #     except rospy.ServiceException as e:
+    #         rospy.logerr("Service call failed: %s", e)
 
 
     def main(self):
