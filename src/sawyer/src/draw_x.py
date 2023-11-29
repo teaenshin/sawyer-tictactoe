@@ -25,8 +25,8 @@ def main():
     tfListener = tf2_ros.TransformListener(tfBuffer)
     r = rospy.Rate(1)
 
-    height = 0.2 # TODO: adjust 
-    x_width = 0.05 # TODO: adjust 
+    height = 0.02 # TODO: adjust 
+    x_width = 0.03 # TODO: adjust 
 
     # drawing visual:
     # (1) \     / (4)(5)
@@ -41,7 +41,7 @@ def main():
         request.ik_request.group_name = "right_arm"
 
         # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "right_gripper_tip"
+        link = "stp_022310TP99251_tip"
 
         request.ik_request.ik_link_name = link
         # request.ik_request.attempts = 20
@@ -53,14 +53,14 @@ def main():
 
         try:
             # find curr location of end effector:
-            trans = tfBuffer.lookup_transform("base", "right_gripper_tip", rospy.Time())   # TODO: may need to update frames
+            trans = tfBuffer.lookup_transform("base", "stp_022310TP99251_tip", rospy.Time())   # TODO: may need to update frames
             # trans.transform.translation gives current x, y, z
             print("current position:", trans.transform.translation)
             # Set the desired orientation for the end effector HERE (marker touches board)
             request.ik_request.pose_stamped.pose.position.x = trans.transform.translation.x
             request.ik_request.pose_stamped.pose.position.y = trans.transform.translation.y
             # request.ik_request.pose_stamped.pose.position.z = trans.transform.translation.z - height
-            request.ik_request.pose_stamped.pose.position.z = -0.133          
+            request.ik_request.pose_stamped.pose.position.z = 0.016          
 
             # move robot to loc 1
             # Send the request to the service
@@ -189,6 +189,30 @@ def main():
                 group.execute(plan[1])
 
             # TODO: move robot back to tuck???
+             # move robot to tuck
+            # [0.694, 0.158, 0.525]
+            request.ik_request.pose_stamped.pose.position.x = 0.694
+            request.ik_request.pose_stamped.pose.position.y = 0.158
+            request.ik_request.pose_stamped.pose.position.z = 0.525
+
+            # Send the request to the service
+            response = compute_ik(request)
+            
+            # Print the response HERE
+            print(response)
+            group = MoveGroupCommander("right_arm")
+
+            # Setting position and orientation target
+            group.set_pose_target(request.ik_request.pose_stamped)
+
+            # Plan IK
+            plan = group.plan()
+            user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            
+            # Execute IK if safe
+            if user_input == 'y':
+                group.execute(plan[1])
+
             
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)

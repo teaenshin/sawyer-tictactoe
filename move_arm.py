@@ -14,8 +14,15 @@ import numpy as np
 from numpy import linalg
 import sys
 
-row_coord = [_, _, _] # TODO: x-coord corresponding to each row
-col_coord = [_, _, _] # TODO: y-coord corresponding to each col
+row_coord = [0.839, 0.775, 0.710] # TODO: x-coord corresponding to each row
+col_coord = [0.141, 0.077, 0.012] # TODO: y-coord corresponding to each col
+
+# # #
+# # #
+# # #
+
+# column: index % 3
+# row: index // 3
 
 def callback(msg):
     # Wait for the IK service to become available
@@ -38,8 +45,8 @@ def callback(msg):
         request.ik_request.pose_stamped.header.frame_id = "base"
         
         # Set the desired orientation for the end effector HERE
-        request.ik_request.pose_stamped.pose.position.x = row_coord[msg.data[0]]
-        request.ik_request.pose_stamped.pose.position.y = col_coord[msg.data[1]]
+        request.ik_request.pose_stamped.pose.position.x = row_coord[msg.data // 3]
+        request.ik_request.pose_stamped.pose.position.y = col_coord[msg.data % 3]
         request.ik_request.pose_stamped.pose.position.z = 3.0   # TODO: dependent on whiteboard height        
         request.ik_request.pose_stamped.pose.orientation.x = 0.0
         request.ik_request.pose_stamped.pose.orientation.y = 1.0
@@ -93,9 +100,10 @@ if __name__ == '__main__':
     # /listener_<id>, where <id> is a randomly generated numeric string. This
     # randomly generated name means we can start multiple copies of this node
     # without having multiple nodes with the same name, which ROS doesn't allow.
-    rospy.init_node('listener', anonymous=True) # ??
+    # rospy.init_node('listener', anonymous=True) # ??
 
-    listener()
+    # listener()
+    callback()
 
 
 # lab5/src/move_arm/src/ik_example.py
