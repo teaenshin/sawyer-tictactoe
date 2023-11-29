@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 from vision.msg import BoardData
 from vision_utils import *
