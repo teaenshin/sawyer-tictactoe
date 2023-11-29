@@ -2,7 +2,6 @@
 import cv2
 import numpy as np
 from PIL import Image
-import pyrealsense2 as rs
 
 # Configure depth and color streams for the Real Sense Camera
 ###########
@@ -42,9 +41,9 @@ def crop_image(image, contour):
     '''
     Crops image to a given contour
     '''
+    blackout(image, contour)
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
-    blackout(cropped_image, contour)
     return cropped_image
 
 def blackout(image, contour):
