@@ -44,7 +44,18 @@ def crop_image(image, contour):
     '''
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
+    blackout(cropped_image)
     return cropped_image
+
+def blackout(image, contour):
+    mask = np.zeros_like(image)
+    # Draw the contour on the mask with white color and thickness of -1 (fill the contour)
+    cv2.drawContours(mask, [contour], 0, (255, 255, 255), -1)
+    # Convert the mask to grayscale
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    # Set pixels outside the contour to black in the original image
+    image[mask == 0] = [0, 0, 0]
+
 
 def processBoard(debug=True):
     '''
