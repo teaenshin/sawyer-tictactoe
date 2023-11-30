@@ -484,17 +484,14 @@ def main():
     warped_grid = processBoard()
     cells = getGridCells(warped_grid)
     getGridCellsRobust(warped_grid)
+    vals = [""] * len(cells)
     for i in range(len(cells)):
         cell = cells[i]
         x = identifyCell(cell)
-        print('cell type', x)
-    # processCells(warped_board)
+        vals[i] = x 
+    print(vals)
     
-    '''
-    if board is done drawing:
-        while not isGameOver(state): 
-            
-    '''
+
     
 
 if __name__ == "__main__":
