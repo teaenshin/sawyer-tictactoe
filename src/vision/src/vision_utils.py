@@ -61,7 +61,7 @@ def processBoard(debug=True):
     Identifies and crops to whiteboard. Identifies and crops to tictactoe grid in whiteboard.
     Returns a binary image of the grid warped to top down view. 
     '''
-    img = cv2.imread('imgs/cam4.jpg')
+    img = cv2.imread('/Users/pranitpanda/Code/sawyer-tictactoe/src/vision/src/imgs/cam3.jpg')
     # resized_frame = cv2.resize(img, (300, 300))  # TODO # Resize the image for consistency
     resized_frame = img
     ### Crop 
@@ -238,10 +238,7 @@ def getGridCellsRobust(warped_grid):
             intersect = calculate_intersection(h_line, v_line)
             if intersect:
                 intersections.append(intersect)
-                print(intersect)
-                cv2.circle(blank_image, intersect, 10, (255,255,255))
-                cv2.imshow('Image with Grid Lines', blank_image)
-                cv2.waitKey(0)
+
 
     intersections.sort(key=lambda x: x[0])
     intersections.sort(key=lambda x:x[1])
@@ -260,6 +257,14 @@ def getGridCellsRobust(warped_grid):
     cells = [top_left, top_middle, top_right, 
                 middle_left, middle_middle, middle_right, 
                 bottom_left, bottom_middle, bottom_right]
+    
+    # Display each segment in a separate window
+    for idx, segment in enumerate(cells):
+        window_name = f"Segment {idx+1}"
+        cv2.imshow(window_name, segment)
+        cv2.waitKey(0)  # Wait for a key press to show the next segment
+
+    cv2.destroyAllWindows() 
 
     return cells
 
@@ -474,10 +479,11 @@ def main():
                         None,None,None])
 
     # Read in video feed 
-    getCamera()
+    #getCamera()
     print('get camera done')
     warped_grid = processBoard()
     cells = getGridCells(warped_grid)
+    getGridCellsRobust(warped_grid)
     for i in range(len(cells)):
         cell = cells[i]
         x = identifyCell(cell)
