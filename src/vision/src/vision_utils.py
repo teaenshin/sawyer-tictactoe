@@ -160,6 +160,109 @@ def getGridCells(warped_grid, margin_percent=15):
     # new_image = Image.new('RGB', (width, height))
     return cells
 
+def get_line_params(rho, theta):
+    a = np.cos(theta)
+    b = np.sin(theta)
+    x0 = a * rho
+    y0 = b * rho
+    x1 = int(x0 + 1000 * (-b))
+    y1 = int(y0 + 1000 * (a))
+    x2 = int(x0 - 1000 * (-b))
+    y2 = int(y0 - 1000 * (a))
+    return (x1, y1, x2, y2)
+
+def calculate_intersection(line1, line2):
+    x1, y1, x2, y2 = line1
+    x3, y3, x4, y4 = line2
+
+    d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if d:
+        xi = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / d
+        yi = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / d
+        return int(xi), int(yi)
+    else:
+        return None
+
+def getGridCellsRobust(warped_grid):
+    blur = cv2.GaussianBlur(warped_grid, (3, 3), 0)
+    top_bottom_margin = 30  # Margin from top and bottom
+    left_right_margin = 30  # Margin from left and right        
+    # Apply Canny edge detection
+    edges = cv2.Canny(warped_grid, 50, 150, apertureSize=3)
+
+    # Use Hough Transform to find lines
+    lines = cv2.HoughLines(edges, 1, np.pi/180, 150)
+
+    blank_image = np.zeros(warped_grid.shape, warped_grid.dtype)
+    vertical_lines = []
+    horizontal_lines = []
+
+    # Draw the lines on the image for visualization
+    for line in lines:
+        rho, theta = line[0]
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+        if abs(b) < 0.5 and (rho < left_right_margin and rho > -warped_grid.shape[1] + left_right_margin):
+            append = True
+            for prev_line in vertical_lines:
+                if abs(prev_line[0][0]-rho) < 30:
+                    append = False
+            
+            if append:
+                vertical_lines.append(line)
+                cv2.line(blank_image, (x1, y1), (x2, y2), (255, 255, 255), 4)
+
+        elif abs(np.sin(theta)) > 0.5 and (rho > top_bottom_margin and rho < warped_grid.shape[0] - top_bottom_margin):
+            append = True
+            for prev_line in horizontal_lines:
+                if abs(prev_line[0][0]-rho) < 30:
+                    append = False
+            
+            if append:
+                horizontal_lines.append(line)
+                cv2.line(blank_image, (x1, y1), (x2, y2), (255, 255, 255), 4)
+
+    horizontal_lines_params = [get_line_params(line[0][0], line[0][1]) for line in horizontal_lines]
+    vertical_lines_params = [get_line_params(line[0][0], line[0][1]) for line in vertical_lines]
+
+    # Calculate intersections
+    intersections = []
+    for h_line in horizontal_lines_params:
+        for v_line in vertical_lines_params:
+            intersect = calculate_intersection(h_line, v_line)
+            if intersect:
+                intersections.append(intersect)
+                print(intersect)
+                cv2.circle(blank_image, intersect, 10, (255,255,255))
+                cv2.imshow('Image with Grid Lines', blank_image)
+                cv2.waitKey(0)
+
+    intersections.sort(key=lambda x: x[0])
+    intersections.sort(key=lambda x:x[1])
+    top_left = warped_grid[0:intersections[0][1], 0:intersections[0][0]]
+    top_middle = warped_grid[0:intersections[0][1], intersections[0][0]:intersections[1][0]]
+    top_right = warped_grid[0:intersections[1][1], intersections[1][0]:]
+    middle_left = warped_grid[intersections[0][1]:intersections[2][1], 0:intersections[0][0]]
+    middle_middle = warped_grid[intersections[0][1]:intersections[2][1], intersections[0][0]:intersections[1][0]]
+    middle_right = warped_grid[intersections[1][1]:intersections[3][1], intersections[1][0]:]
+    bottom_left = warped_grid[intersections[2][1]:, 0:intersections[2][0]]
+    bottom_middle = warped_grid[intersections[2][1]:, intersections[2][0]:intersections[3][0]]
+    bottom_right = warped_grid[intersections[2][1]:, intersections[3][0]:]
+
+
+
+    cells = [top_left, top_middle, top_right, 
+                middle_left, middle_middle, middle_right, 
+                bottom_left, bottom_middle, bottom_right]
+
+    return cells
+
 def getCamera():
     # define a video capture object 
     vid = cv2.VideoCapture(0) 
