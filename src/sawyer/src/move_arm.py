@@ -1,9 +1,3 @@
-# PACKAGE OF FILE SHOULD INCLUDE intera_interface, rospy and std_msgs
-# (also need planning package from lab 5)
-
-# Current implementation: subscribes to "grid_index" topic, reads the index and moves to it
-# (includes all of the planning visualization stuff, idk if we want to keep)
-
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Int16MultiArray
@@ -14,8 +8,12 @@ import numpy as np
 from numpy import linalg
 import sys
 
-row_coord = [0.839, 0.775, 0.710] # TODO: x-coord corresponding to each row
-col_coord = [0.141, 0.077, 0.012] # TODO: y-coord corresponding to each col
+tuck = (0.694, 0.158, 0.525)
+
+# row_coord = [0.839, 0.775, 0.710] # TODO: x-coord corresponding to each row
+# col_coord = [0.141, 0.077, 0.012] # TODO: y-coord corresponding to each col
+row_coord = [tuck[0] + 0.02 + 2 * 0.2, tuck[0] + 0.02 + 0.2, tuck[0] + 0.02] # TODO: x-coord corresponding to each row
+col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2, tuck[1] - 0.02 - 2 * 0.2] # TODO: y-coord corresponding to each col
 
 # # #
 # # #
@@ -24,7 +22,7 @@ col_coord = [0.141, 0.077, 0.012] # TODO: y-coord corresponding to each col
 # column: index % 3
 # row: index // 3
 
-def callback(msg):
+def main(msg):
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
     rospy.init_node('service_query')
@@ -38,16 +36,16 @@ def callback(msg):
         request.ik_request.group_name = "right_arm"
 
         # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "right_gripper_tip"
+        link = "stp_022310TP99251_tip" # "right_gripper_tip"
 
         request.ik_request.ik_link_name = link
         # request.ik_request.attempts = 20
         request.ik_request.pose_stamped.header.frame_id = "base"
         
         # Set the desired orientation for the end effector HERE
-        request.ik_request.pose_stamped.pose.position.x = row_coord[msg.data // 3]
-        request.ik_request.pose_stamped.pose.position.y = col_coord[msg.data % 3]
-        request.ik_request.pose_stamped.pose.position.z = 3.0   # TODO: dependent on whiteboard height        
+        request.ik_request.pose_stamped.pose.position.x = row_coord[0//3]
+        request.ik_request.pose_stamped.pose.position.y = col_coord[0%3]
+        request.ik_request.pose_stamped.pose.position.z = 0.3   # TODO: dependent on whiteboard height        
         request.ik_request.pose_stamped.pose.orientation.x = 0.0
         request.ik_request.pose_stamped.pose.orientation.y = 1.0
         request.ik_request.pose_stamped.pose.orientation.z = 0.0
@@ -80,17 +78,17 @@ def callback(msg):
             print("Service call failed: %s"%e)
 
 
-def listener():
+# def listener():
 
-    # Create a new instance of the rospy.Subscriber object which we can use to
-    # receive messages of type std_msgs/String from the topic /chatter_talk.
-    # Whenever a new message is received, the method callback() will be called
-    # with the received message as its first argument.
-    rospy.Subscriber("grid_index", Int16MultiArray, callback)
+#     # Create a new instance of the rospy.Subscriber object which we can use to
+#     # receive messages of type std_msgs/String from the topic /chatter_talk.
+#     # Whenever a new message is received, the method callback() will be called
+#     # with the received message as its first argument.
+#     rospy.Subscriber("grid_index", Int16MultiArray, callback)
 
-    # Wait for messages to arrive on the subscribed topics, and exit the node
-    # when it is killed with Ctrl+C
-    rospy.spin()
+#     # Wait for messages to arrive on the subscribed topics, and exit the node
+#     # when it is killed with Ctrl+C
+#     rospy.spin()
 
 
 # Python's syntax for a main() method
@@ -103,7 +101,7 @@ if __name__ == '__main__':
     # rospy.init_node('listener', anonymous=True) # ??
 
     # listener()
-    callback()
+    main(0)
 
 
 # lab5/src/move_arm/src/ik_example.py
