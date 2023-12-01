@@ -16,12 +16,11 @@ class VisionNode:
             print("Error could not open camera")
             exit()
         self.vid.set(cv2.CAP_PROP_FPS, 30) # set frame rate
+        self.prev_boards = []
 
 
     def setup_vision(self, debug=False):
         while True:
-            cv2.destroyAllWindows()
-
             color_image = self.get_color_image()
             # color_image = cv2.imread('/home/cc/ee106a/fa23/class/ee106a-aem/sawyer-tictactoe/src/vision/src/imgs/cam3.jpg')
             self.whiteboard = get_whiteboard(color_image) # largest contour, used to identify whether board is obstructed
@@ -50,7 +49,9 @@ class VisionNode:
             print("Press y if it warped whiteboard looks good. Press enter to refresh camera feed.")
             key = cv2.waitKey(0)
             if key == ord('y'):
-                break 
+                break
+        cv2.destroyAllWindows()
+
 
     def get_color_image(self):
         ''' gets a color frame from camera feed '''
@@ -70,9 +71,21 @@ class VisionNode:
                 print("Full whiteboard not detected")
                 self.rate.sleep()
                 continue
-            board_data.data = cur_gamestate
-            self.publisher.publish(board_data)
-            rospy.loginfo("Publishing board data: %s", board_data.data)
+            if len(self.prev_boards) < 5:
+                send = False
+            else:
+                send = True
+                for board in self.prev_boards:
+                    if not np.array_equal(board, cur_gamestate):
+                        send = False
+            if send:
+                board_data.data = cur_gamestate
+                self.publisher.publish(board_data)
+                rospy.loginfo("Publishing board data: %s", board_data.data)
+                
+            self.prev_boards.append(cur_gamestate)
+            if len(self.prev_boards) > 5:
+                self.prev_boards = self.prev_boards[1:]  
             self.rate.sleep()
         self.vid.release()
         cv2.destroyAllWindows()
@@ -103,8 +116,7 @@ class VisionNode:
         # cv2.destroyAllWindows()
 
         cells = getGridCells(warped_board)
-        gamestate = get_state(cells)
-        print('gamestate', gamestate)
+        gamestate = get_state(cells)    
         return gamestate
 
 
