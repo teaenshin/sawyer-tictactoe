@@ -23,7 +23,7 @@ col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6] # TODO:
 # column: index % 3
 # row: index // 3
 
-def callback(msg):
+def draw_win(msg):
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
     rospy.init_node('service_query')
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # rospy.init_node('listener', anonymous=True) # ??
 
     # listener()
-    callback([0, 3, 6])
+    draw_win()
 
 
 # lab5/src/move_arm/src/ik_example.py

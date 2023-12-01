@@ -6,6 +6,7 @@ from vision_utils import *
 from utils import *
 
 from vision.msg import BoardData
+from vision.srv import Robot
 
 # Import definition of DRAW REQUESt (srv)
 
@@ -16,6 +17,7 @@ class RootNode:
         self.subscriber = rospy.Subscriber("board_data_topic", BoardData, self.gamestate_callback)
         self.gamestate = None
         self.game_over = False
+        self.updated = False
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -40,6 +42,7 @@ class RootNode:
                     change = self.gamestate[i]
         if change:
             self.update(change)
+            self.updated = True
 
     # player is either X or O and depending on which one it is we act accordingly
     def update(self, player):
@@ -91,6 +94,90 @@ class RootNode:
     #         return resp.success, resp.message
     #     except rospy.ServiceException as e:
     #         rospy.logerr("Service call failed: %s", e)
+
+    def getPossibleMoves(self):
+        '''
+        return an array of all the possible moves a robot can take
+        if there are no possible moves return empty array, this means our board is full and the game is over
+        '''
+        return [i for i in range(len(self.gamestate)) if self.gamestate[i] == None]
+
+
+    def getWinningThree(self):
+        '''
+        returns a 3x1 array of the board indices for the winning 3 in a row
+        if there is no 3 in a row, returns None
+        '''
+
+        wins = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], #rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], #cols
+            [0, 4, 8], [2, 4, 6] #diagonals
+        ]
+
+        # check if any row, col, or diagonal has three 'X's or 'O's 
+        for w in wins:
+            first, second, third = w
+
+            if self.gamestate[first] == self.gamestate[second] == self.gamestate[third] and self.gamestate[first] != None:
+                return w
+
+        # no valid three in a row was found
+        return None
+
+    def getWinner(self):
+        '''
+        if the game is not over, return None
+        return 'robot' if the robot wins, based on whether there are 3 'X's in a row on the board
+        return 'human' if the human wins, based on whether there are 3 'O's in a row on the board
+        return 'draw' if neither robot or human won
+        '''
+
+        win = self.getWinningThree(self.gamestate)
+            
+        if win and self.gamestate[win[0]] == 'X': 
+            return "robot"
+
+        elif win and self.gamestate[win[0]] == 'O': 
+            return "human"
+
+        elif self.getPossibleMoves(self.gamestate) == 0:
+            return "draw"
+
+        else:
+            return None
+
+    def getRobotWin(self):
+
+        win = self.getWinningThree(self.gamestate)
+
+        if self.getWinner(self.gamestate) == "robot":
+            return win
+
+    def robot_client(self):
+        rospy.wait_for_service('/draw_service')
+
+        try: 
+            robot_proxy = rospy.ServiceProxy('/draw_service', Robot)
+
+            win = self.getRobotWin(self.gamestate)
+
+            # robot won -> robot draws win line
+            if win is not None:
+                robot_proxy(1, None, win)
+
+            # human made move -> robot draws x
+            elif not self.getWinner() and self.updated:  # check that human made move and the game is not over
+                idx = self.pick_move()
+                self.updated = False
+                robot_proxy(0, idx, None)
+
+            else:
+                robot_proxy(-1, None, None)
+
+
+        except rospy.ServiceException as e:
+            rospy.loginfo(e)
 
 
     def main(self):
