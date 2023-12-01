@@ -16,7 +16,7 @@ tuck = (0.694, 0.158, 0.525)
 row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] # TODO: x-coord corresponding to each row
 col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2/3, tuck[1] - 0.02 - 2 * 0.2/3] # TODO: y-coord corresponding to each col
 
-def main(msg):
+def draw_x(msg):
     print("hello")
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
@@ -251,5 +251,5 @@ def main(msg):
 
 # Python's syntax for a main() method
 if __name__ == '__main__':
-    main(4)
+    draw_x()
 
