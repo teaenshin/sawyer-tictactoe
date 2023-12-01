@@ -68,6 +68,9 @@ class VisionNode:
             self.publisher.publish(board_data)
             rospy.loginfo("Publishing board data: %s", board_data.data)
             self.rate.sleep()
+        self.vid.release()
+        cv2.destroyAllWindows()
+
 
     
     def get_gamestate(self):
