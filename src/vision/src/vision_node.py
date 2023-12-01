@@ -5,6 +5,7 @@ from vision.msg import BoardData
 from vision_utils import *
 
 class VisionNode:
+    ''' Publishes gamestate '''
     def __init__(self):
         rospy.init_node('vision_node')
         self.publisher = rospy.Publisher('board_data_topic', BoardData, queue_size=1)
@@ -64,23 +65,10 @@ class VisionNode:
                 self.rate.sleep()
                 continue
             board_data.data = cur_gamestate
-            rospy.loginfo("Publishing board data: %s", board_data.data)
             self.publisher.publish(board_data)
+            rospy.loginfo("Publishing board data: %s", board_data.data)
             self.rate.sleep()
 
-
-    # def get_board(self):
-
-    #     color_image = self.get_color_image()
-
-    #     # TODO: check that the largest contour is still the whiteboard, prevent publishing data while drawing
-    #     cur_whiteboard = get_whiteboard(color_image)
-    #     print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
-    #     if abs(cv2.contourArea(self.whiteboard) - cv2.contourArea(cur_whiteboard)) > 200:
-    #         return None
-
-    #     cropped_image = crop_image(color_image, self.whiteboard)
-    #     return getBoard(cropped_image)
     
     def get_gamestate(self):
         color_image = self.get_color_image()
@@ -88,12 +76,10 @@ class VisionNode:
         # don't publish when board not detected/
         cur_whiteboard = get_whiteboard(color_image)
         print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
-        # if abs(cv2.contourArea(self.whiteboard) - cv2.contourArea(cur_whiteboard)) > 400:
-        #     return None
-        if cv2.contourArea(cur_whiteboard) / cv2.contourArea(self.whiteboard) < 0.75:
+
+        if cv2.contourArea(cur_whiteboard) / cv2.contourArea(self.whiteboard) < 0.7:
             return None
         
-
         cropped_image = crop_image(color_image, self.whiteboard)
         warped_board = getBoard(cropped_image)
 
@@ -112,8 +98,9 @@ class VisionNode:
     
 
 if __name__ == '__main__':
-    print("hi")
     node = VisionNode()
     node.setup_vision()
-    # node.debug_board()
-    node.publish_board_data()
+
+    try:
+        node.publish_board_data()
+    except rospy.ROSInterruptException: pass

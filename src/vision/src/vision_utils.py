@@ -42,10 +42,10 @@ def get_whiteboard(color_image):
     '''
     hsv = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
 
-    lower_hsl = np.array([0, 0, 160])  
-    upper_hsl = np.array([180, 80, 255]) 
+    lower_hsv = np.array([0, 0, 160])  
+    upper_hsv = np.array([180, 80, 255]) 
 
-    mask = cv2.inRange(hsv, lower_hsl, upper_hsl)
+    mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
     # Create a binary mask for the white paper
 
     # cv2.imshow('mask', mask)
@@ -131,15 +131,16 @@ def getBoard(cropped_image):
     bottom_corners = sorted(corners[:2], key=lambda x: x[1])
     bottom_corners = sorted(bottom_corners, key=lambda x:x[0])
     corners = np.array(top_corners + bottom_corners, dtype=np.float32) # (top left, top right, bottom left, bottom right)
-    print('corners', corners)
-    image_with_polygon = cropped_image.copy()
-    c = 50
-    for corner in corners:
-        cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
-        c += 50
-    cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-    cv2.imshow('img with poly', image_with_polygon)
-    cv2.waitKey(0)
+
+    # print('corners', corners)
+    # image_with_polygon = cropped_image.copy()
+    # c = 50
+    # for corner in corners:
+    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
+    #     c += 50
+    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+    # cv2.imshow('img with poly', image_with_polygon)
+    # cv2.waitKey(0)
 
     board = [""]*9
     if corners.shape !=(4, 2):
@@ -422,8 +423,8 @@ def get_state(cells):
                         None,None,None])
     for i in range(len(cells)):
         cell = cells[i]
-        cv2.imshow(f'cell {i}', cell)
-        cv2.waitKey(0)
+        # cv2.imshow(f'cell {i}', cell)
+        # cv2.waitKey(0)
         cell_type = identifyCell(cell)
         gamestate[i] = cell_type
     return gamestate

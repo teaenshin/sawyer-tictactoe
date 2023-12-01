@@ -2,17 +2,20 @@
 import numpy as np
 import rospy
 import sys
-import vision.src.utils as utils
+from vision_utils import *
 from vision.msg import BoardData
 
 # Import definition of DRAW REQUESt (srv)
 
 class RootNode:
+    ''' Subscriber for gamestate'''
     def __init__(self) -> None:
         rospy.init_node('root_node')
-        rospy.Subscriber("board_data_topic", BoardData, self.board_callback)
+        self.subscriber = rospy.Subscriber("board_data_topic", BoardData, self.board_callback)
         self.board = None
         self.game_over = False
+
+        rospy.spin()
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
     # In that case we would add a timer and ensure there is a minimum time buffer between callbacks
