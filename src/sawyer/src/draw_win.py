@@ -37,7 +37,7 @@ def draw_win(msg):
         request.ik_request.group_name = "right_arm"
 
         # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "right_gripper_tip"
+        link = "stp_022310TP99251_tip" #"right_gripper_tip"
 
         request.ik_request.ik_link_name = link
         # request.ik_request.attempts = 20
@@ -49,7 +49,7 @@ def draw_win(msg):
         request.ik_request.pose_stamped.pose.orientation.z = 0.0
         request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
-        z = 0.019
+        z = 0.016
         
         try:
 

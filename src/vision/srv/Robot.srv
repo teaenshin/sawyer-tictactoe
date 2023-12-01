@@ -1,6 +1,6 @@
 # Request message type
 int16 type # 0 -> draw x, 1 -> draw win line
 int16 index # index to draw x
-Int16MultiArray win # array with 3 indices to draw win line
+int16[] win # array with 3 indices to draw win line
 
 # Response message type

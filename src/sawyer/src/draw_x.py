@@ -91,7 +91,7 @@ def draw_x(msg):
             request.ik_request.pose_stamped.pose.position.x = trans.transform.translation.x
             request.ik_request.pose_stamped.pose.position.y = trans.transform.translation.y
             # request.ik_request.pose_stamped.pose.position.z = trans.transform.translation.z - height
-            request.ik_request.pose_stamped.pose.position.z = 0.019          
+            request.ik_request.pose_stamped.pose.position.z = 0.016          
 
             # move robot to loc 1
             # Send the request to the service
@@ -251,5 +251,5 @@ def draw_x(msg):
 
 # Python's syntax for a main() method
 if __name__ == '__main__':
-    draw_x()
+    draw_x(0)
 
