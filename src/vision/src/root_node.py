@@ -17,7 +17,6 @@ class RootNode:
         self.gamestate = None
         self.game_over = False
 
-        rospy.spin()
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
     # In that case we would add a timer and ensure there is a minimum time buffer between callbacks
