@@ -4,43 +4,80 @@ import numpy as np
 from PIL import Image
 
 # Configure depth and color streams for the Real Sense Camera
-###########
+
+### PROCESS BOARD FROM CAM ###
+
+# def get_whiteboard(color_image):
+#     '''
+#     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
+#     If no largest contour detected, will return None
+#     '''
+#     hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
+
+#     lower_hsl = np.array([0, 0, 0])  
+#     upper_hsl = np.array([180, 255, 35]) 
+
+#     lower_hsl = np.array([0, 0, 150])  
+#     upper_hsl = np.array([180, 180, 255]) 
+
+#     mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
+#     cv2.imshow('mask', mask)
+#     cv2.waitKey(0)
+#     # Find contours in the masked image
+#     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+#     # If there are no contours, return None
+#     if not contours:
+#         print("Error: there are no contours")
+#         return None
+
+#     # Find the largest contour by area
+#     largest_contour = max(contours, key=cv2.contourArea)
+#     return largest_contour
 
 def get_whiteboard(color_image):
     '''
     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
     If no largest contour detected, will return None
     '''
-    hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
+    hsv = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
 
-    lower_hsl = np.array([0, 0, 0])  
-    upper_hsl = np.array([180, 255, 35]) 
+    lower_hsl = np.array([0, 0, 160])  
+    upper_hsl = np.array([180, 80, 255]) 
 
-    mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
+    mask = cv2.inRange(hsv, lower_hsl, upper_hsl)
+    # Create a binary mask for the white paper
+
+    # cv2.imshow('mask', mask)
+    # cv2.waitKey(0)
     # Find contours in the masked image
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # If there are no contours, return None
     if not contours:
+        print("Error: there are no contours")
         return None
 
     # Find the largest contour by area
     largest_contour = max(contours, key=cv2.contourArea)
     return largest_contour
 
-def get_contour_center(contour):
-    M = cv2.moments(contour)
-    if M["m00"] != 0:
-        center_x = int(M["m10"] / M["m00"])
-        center_y = int(M["m01"] / M["m00"])
-    else:
-        center_x, center_y = 0, 0
-    return center_x, center_y
+# def get_contour_center(contour):
+#     M = cv2.moments(contour)
+#     if M["m00"] != 0:
+#         center_x = int(M["m10"] / M["m00"])
+#         center_y = int(M["m01"] / M["m00"])
+#     else:
+#         center_x, center_y = 0, 0
+#     return center_x, center_y
 
 def crop_image(image, contour):
     '''
     Crops image to a given contour
     '''
+    if contour is None or len(contour) == 0:
+        print("Error: contour is empty")
+        return None
     blackout(image, contour)
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
@@ -55,22 +92,7 @@ def blackout(image, contour):
     # Set pixels outside the contour to black in the original image
     image[mask == 0] = [255, 255, 255]
 
-
-def processBoard(debug=True):
-    '''
-    Identifies and crops to whiteboard. Identifies and crops to tictactoe grid in whiteboard.
-    Returns a binary image of the grid warped to top down view. 
-    '''
-    img = cv2.imread('/Users/pranitpanda/Code/sawyer-tictactoe/src/vision/src/imgs/cam3.jpg')
-    # resized_frame = cv2.resize(img, (300, 300))  # TODO # Resize the image for consistency
-    resized_frame = img
-    ### Crop 
-    whiteboard = get_whiteboard(resized_frame)
-    cropped_image = crop_image(resized_frame, whiteboard)
-    # TODO: let user manually check if cropped image is correct
-
-    ### Preproccess img
-    # Convert to grayscale
+def getBoard(cropped_image):
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
     # bi = cv2.bilateralFilter(gray, 5, 75, 75)
 
@@ -92,33 +114,51 @@ def processBoard(debug=True):
     ### Get 4 corners of the grid
     corners = approx_polygon.reshape(-1, 2)
     # Draw the polygon on the original image
-    image_with_polygon = cropped_image.copy()
-    for corner in corners:
-        cv2.circle(image_with_polygon, corner, 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
+    # image_with_polygon = cropped_image.copy()
+    # for corner in corners:
+    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
     # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+    # cv2.imshow('corners', image_with_polygon)
+    # cv2.waitKey(0)
 
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
-    target_corners = np.array([[0, 0], [0, target_size - 1], [target_size - 1, 0], [target_size - 1, target_size - 1], ], dtype=np.float32) # (top left, top right, bottom left, bottom right)
+    target_corners = np.array([[0, 0], [target_size - 1, 0], [0, target_size - 1],  [target_size - 1, target_size - 1]], dtype=np.float32) 
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    corners = sorted(corners, key=lambda x: x[1])
-    corners = sorted(corners, key=lambda x: x[0]) # sort by row
-    corners = np.array(corners)
+    top_corners = sorted(corners[2:], key=lambda x:x[1])
+    top_corners = sorted(top_corners, key=lambda x:x[0])
+    bottom_corners = sorted(corners[:2], key=lambda x: x[1])
+    bottom_corners = sorted(bottom_corners, key=lambda x:x[0])
+    corners = np.array(top_corners + bottom_corners, dtype=np.float32) # (top left, top right, bottom left, bottom right)
+    print('corners', corners)
+    image_with_polygon = cropped_image.copy()
+    c = 50
+    for corner in corners:
+        cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
+        c += 50
+    cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+    cv2.imshow('img with poly', image_with_polygon)
+    cv2.waitKey(0)
 
-    # TODO: figure out what to do when the grid is not detected
-    assert corners.shape == (4, 2), "there should be 4 corners for the grid"
+    board = [""]*9
+    if corners.shape !=(4, 2):
+        cv2.destroyAllWindows()
+        print("BOARD NOT DETECTED")
+        return board
     # Calculate the perspective transformation matrix
     transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
     # Apply the perspective transformation
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
     _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
+    # cv2.imshow('warped_image after threshold', warped_image)
+    # cv2.waitKey(0)
 
+    # cv2.destroyAllWindows() 
 
-    
     return warped_image
-    # Display the resulting frame
 
+### GET CELLS ###
 def getGridCells(warped_grid, margin_percent=15):
     '''
     Input:
@@ -159,6 +199,7 @@ def getGridCells(warped_grid, margin_percent=15):
     # Create a new image by pasting the grid images
     # new_image = Image.new('RGB', (width, height))
     return cells
+
 
 def get_line_params(rho, theta):
     a = np.cos(theta)
@@ -268,38 +309,7 @@ def getGridCellsRobust(warped_grid):
 
     return cells
 
-def getCamera():
-    # define a video capture object 
-    vid = cv2.VideoCapture(0) 
-    if not vid.isOpened():
-        print("Error could not open camera")
-        exit()
-    vid.set(cv2.CAP_PROP_FPS, 30) # set frame rate
-    while(True): 
-        
-        # Capture the video frame 
-        # by frame 
-        ret, frame = vid.read() 
-
-        if not ret:
-            print("Error could not read frame")
-            exit()
-    
-        # Display the resulting frame 
-        cv2.imshow('frame', frame) 
-        
-        # the 'q' button is set as the 
-        # quitting button you may use any 
-        # desired button of your choice 
-        if cv2.waitKey(1) & 0xFF == ord('q'): 
-            break
-    
-    # After the loop release the cap object 
-    vid.release() 
-    # Destroy all the windows 
-    cv2.destroyAllWindows() 
-
-
+### PROCESS CELLS ###
 def is_oval(contour, tolerance=0.2):
     """
     Determine if a contour is an oval.
@@ -406,71 +416,17 @@ def identifyCell(cell):
         
     return ""
 
-def getBoard(cropped_image):
-    gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-    # bi = cv2.bilateralFilter(gray, 5, 75, 75)
-
-    _, thresh = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY)
-    
-    thresh = 255 - thresh # invert so grid becomes white
-
-    ### Get largest contour, which should be the grid
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # Find the largest contour based on area
-    largest_contour = max(contours, key=cv2.contourArea)
-    # Create a mask image for visualization
-    mask = cropped_image.copy()
-    cv2.drawContours(mask, [largest_contour], 0, 255, thickness=cv2.FILLED)
-
-    epsilon = 0.04 * cv2.arcLength(largest_contour, True)
-    approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
-
-    ### Get 4 corners of the grid
-    corners = approx_polygon.reshape(-1, 2)
-    # Draw the polygon on the original image
-    # image_with_polygon = cropped_image.copy()
-    # for corner in corners:
-    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
-    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-    # cv2.imshow('corners', image_with_polygon)
-    # cv2.waitKey(0)
-
-    ### warp grid into square
-    # Define the four corners of the target square
-    target_size = 300
-    target_corners = np.array([[0, 0], [0, target_size - 1], [target_size - 1, 0], [target_size - 1, target_size - 1], ], dtype=np.float32) # (top left, top right, bottom left, bottom right)
-    corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    top_corners = sorted(corners[:2], key=lambda x:x[0])
-    top_corners = sorted(top_corners, key=lambda x:x[1])
-    bottom_corners = sorted(corners[2:], key=lambda x: x[0])
-    bottom_corners = sorted(bottom_corners[:2], key=lambda x:x[1])
-
-    corners = np.array(top_corners + bottom_corners, dtype=np.float32)
-    corners = np.array(corners)
-    board = [""]*9
-    if corners.shape !=(4, 2):
-        cv2.destroyAllWindows()
-        print("BOARD NOT DETECTED")
-        return board
-    # Calculate the perspective transformation matrix
-    transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
-    # Apply the perspective transformation
-    warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
-    _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
-    # cv2.imshow('warped_image after threshold', warped_image)
-    # cv2.waitKey(0)
-
-    cells = getGridCells(warped_image)
-
-    for i in range(9):
-        val = identifyCell(cells[i])
-        board[i] = val
-        print('val: ', val)
-
-    # cv2.destroyAllWindows() 
-
-    return board
-
+def get_state(cells):
+    gamestate = np.array([None,None,None,
+                        None, None,None,
+                        None,None,None])
+    for i in range(len(cells)):
+        cell = cells[i]
+        cv2.imshow(f'cell {i}', cell)
+        cv2.waitKey(0)
+        cell_type = identifyCell(cell)
+        gamestate[i] = cell_type
+    return gamestate
 
 def main():
     #create a 1d array to hold the gamestate
@@ -479,20 +435,62 @@ def main():
                         None,None,None])
 
     # Read in video feed 
-    #getCamera()
-    print('get camera done')
-    warped_grid = processBoard()
-    cells = getGridCells(warped_grid)
-    getGridCellsRobust(warped_grid)
-    vals = [""] * len(cells)
-    for i in range(len(cells)):
-        cell = cells[i]
-        x = identifyCell(cell)
-        vals[i] = x 
-    print(vals)
-    
+    # print("test if camera works: ")
+    # getCamera()
+    # print("camera works")
+    img = cv2.imread('/home/cc/ee106a/fa23/class/ee106a-aem/sawyer-tictactoe/src/vision/src/imgs/cam6.jpg')
+    # resized_frame = cv2.resize(img, (300, 300))  # TODO # Resize the image for consistency
+    resized_frame = img
+    ### Crop 
+    whiteboard = get_whiteboard(resized_frame)
+    cropped_image = crop_image(resized_frame, whiteboard)
+    cv2.imshow('cropped', cropped_image)
+    cv2.waitKey(0)
 
+    warped_grid = getBoard(cropped_image)
+    cv2.imshow('warped_grid', warped_grid)
+    cv2.waitKey(0)
+    cells = getGridCells(warped_grid)
+    # getGridCellsRobust(warped_grid)
+    gamestate = get_state(cells)
+    print('gamestate', gamestate)
+    
     
 
 if __name__ == "__main__":
     main()
+
+
+#### MISC ###
+def getCamera():
+    # define a video capture object 
+    vid = cv2.VideoCapture(0) 
+    if not vid.isOpened():
+        print("Error could not open camera")
+        exit()
+    vid.set(cv2.CAP_PROP_FPS, 30) # set frame rate
+    while(True): 
+        
+        # Capture the video frame 
+        # by frame 
+        ret, frame = vid.read() 
+
+        if not ret:
+            print("Error could not read frame")
+            exit()
+    
+        # Display the resulting frame 
+        cv2.imshow('frame', frame) 
+        
+        # the 'q' button is set as the 
+        # quitting button you may use any 
+        # desired button of your choice 
+        if cv2.waitKey(1) & 0xFF == ord('q'): 
+            break
+    
+    # After the loop release the cap object 
+    vid.release() 
+    # Destroy all the windows 
+    cv2.destroyAllWindows() 
+
+
