@@ -11,7 +11,7 @@ class VisionNode:
         self.publisher = rospy.Publisher('board_data_topic', BoardData, queue_size=1)
         self.rate = rospy.Rate(1)  # 1 Hz
         self.whiteboard = None # whiteboard contour
-        self.vid = cv2.VideoCapture(1) 
+        self.vid = cv2.VideoCapture(0) 
         if not self.vid.isOpened():
             print("Error could not open camera")
             exit()
@@ -40,6 +40,9 @@ class VisionNode:
             if key != ord('y'):
                 continue 
             warped_board = getBoard(cropped_image)
+            if warped_board is None:
+                print("couldnt find board")
+                continue
             cv2.imshow("Warped", warped_board)
             print("Press y if it warped whiteboard looks good. Press enter to refresh camera feed.")
             key = cv2.waitKey(0)
@@ -85,6 +88,9 @@ class VisionNode:
         
         cropped_image = crop_image(color_image, self.whiteboard)
         warped_board = getBoard(cropped_image)
+        if warped_board is None:
+            print("Board not found")
+            return None
 
         # cv2.imshow('warped board', warped_board)
         # cv2.waitKey(0)
@@ -93,7 +99,6 @@ class VisionNode:
         cells = getGridCells(warped_board)
         gamestate = get_state(cells)
         print('gamestate', gamestate)
-        assert gamestate is not None
         return gamestate
 
 

@@ -17,8 +17,6 @@ from PIL import Image
 #     lower_hsl = np.array([0, 0, 0])  
 #     upper_hsl = np.array([180, 255, 35]) 
 
-#     lower_hsl = np.array([0, 0, 150])  
-#     upper_hsl = np.array([180, 180, 255]) 
 
 #     mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
 #     cv2.imshow('mask', mask)
@@ -113,23 +111,16 @@ def getBoard(cropped_image):
 
     ### Get 4 corners of the grid
     corners = approx_polygon.reshape(-1, 2)
-    # Draw the polygon on the original image
-    # image_with_polygon = cropped_image.copy()
-    # for corner in corners:
-    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, 255), -1)  # -1 fills the circle with the specified color
-    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-    # cv2.imshow('corners', image_with_polygon)
-    # cv2.waitKey(0)
 
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
-    target_corners = np.array([[0, 0], [target_size - 1, 0], [0, target_size - 1],  [target_size - 1, target_size - 1]], dtype=np.float32) 
+    target_corners = np.array([  [target_size - 1, 0] ,[target_size - 1, target_size - 1],  [0, 0], [0, target_size - 1]],  dtype=np.float32) 
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    top_corners = sorted(corners[2:], key=lambda x:x[1])
-    top_corners = sorted(top_corners, key=lambda x:x[0])
-    bottom_corners = sorted(corners[:2], key=lambda x: x[1])
-    bottom_corners = sorted(bottom_corners, key=lambda x:x[0])
+    top_corners = sorted(corners[2:], key=lambda x:x[0])
+    top_corners = sorted(top_corners, key=lambda x:x[1])
+    bottom_corners = sorted(corners[:2], key=lambda x: x[0])
+    bottom_corners = sorted(bottom_corners, key=lambda x:x[1])
     corners = np.array(top_corners + bottom_corners, dtype=np.float32) # (top left, top right, bottom left, bottom right)
 
     # print('corners', corners)
@@ -142,11 +133,10 @@ def getBoard(cropped_image):
     # cv2.imshow('img with poly', image_with_polygon)
     # cv2.waitKey(0)
 
-    board = [""]*9
     if corners.shape !=(4, 2):
         cv2.destroyAllWindows()
         print("BOARD NOT DETECTED")
-        return board
+        return None
     # Calculate the perspective transformation matrix
     transformation_matrix = cv2.getPerspectiveTransform(corners, target_corners)
     # Apply the perspective transformation
