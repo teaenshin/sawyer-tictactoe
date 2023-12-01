@@ -11,7 +11,7 @@ class VisionNode:
         self.publisher = rospy.Publisher('board_data_topic', BoardData, queue_size=1)
         self.rate = rospy.Rate(1)  # 1 Hz
         self.whiteboard = None # whiteboard contour
-        self.vid = cv2.VideoCapture(1) 
+        self.vid = cv2.VideoCapture(0) 
         if not self.vid.isOpened():
             print("Error could not open camera")
             exit()
@@ -25,6 +25,9 @@ class VisionNode:
             color_image = self.get_color_image()
             # color_image = cv2.imread('/home/cc/ee106a/fa23/class/ee106a-aem/sawyer-tictactoe/src/vision/src/imgs/cam3.jpg')
             self.whiteboard = get_whiteboard(color_image) # largest contour, used to identify whether board is obstructed
+            if self.whiteboard is None:
+                print("No whiteboard detected")
+                continue
             
             if debug:
                 copy = color_image.copy()
@@ -40,6 +43,9 @@ class VisionNode:
             if key != ord('y'):
                 continue 
             warped_board = getBoard(cropped_image)
+            if warped_board is None:
+                print("couldnt find board")
+                continue
             cv2.imshow("Warped", warped_board)
             print("Press y if it warped whiteboard looks good. Press enter to refresh camera feed.")
             key = cv2.waitKey(0)
@@ -78,6 +84,9 @@ class VisionNode:
 
         # don't publish when board not detected/
         cur_whiteboard = get_whiteboard(color_image)
+        if cur_whiteboard is None:
+            print("No whiteboard detected")
+            return None
         print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
 
         if cv2.contourArea(cur_whiteboard) / cv2.contourArea(self.whiteboard) < 0.7:
@@ -85,6 +94,9 @@ class VisionNode:
         
         cropped_image = crop_image(color_image, self.whiteboard)
         warped_board = getBoard(cropped_image)
+        if warped_board is None:
+            print("Board not found")
+            return None
 
         # cv2.imshow('warped board', warped_board)
         # cv2.waitKey(0)
@@ -93,7 +105,6 @@ class VisionNode:
         cells = getGridCells(warped_board)
         gamestate = get_state(cells)
         print('gamestate', gamestate)
-        assert gamestate is not None
         return gamestate
 
 
