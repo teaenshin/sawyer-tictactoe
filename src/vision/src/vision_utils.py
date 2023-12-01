@@ -87,7 +87,7 @@ def whiteout(image, contour):
     # Set pixels outside the contour to black in the original image
     image[mask == 0] = [255, 255, 255]
 
-def getBoard(cropped_image):
+def getBoard(cropped_image, debug=False):
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
     # bi = cv2.bilateralFilter(gray, 5, 75, 75)
 
@@ -112,23 +112,25 @@ def getBoard(cropped_image):
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
-    target_corners = np.array([  [target_size - 1, 0] ,[target_size - 1, target_size - 1],  [0, 0], [0, target_size - 1]],  dtype=np.float32) 
+    target_corners = np.array([ [0, 0], [0, target_size - 1], [target_size - 1, 0] ,[target_size - 1, target_size - 1] ],  dtype=np.float32) 
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    top_corners = sorted(corners[2:], key=lambda x:x[0])
-    top_corners = sorted(top_corners, key=lambda x:x[1])
-    bottom_corners = sorted(corners[:2], key=lambda x: x[0])
-    bottom_corners = sorted(bottom_corners, key=lambda x:x[1])
+    top_corners = sorted(corners[:2], key=lambda x:x[1])
+    top_corners = sorted(top_corners, key=lambda x:x[0])
+    bottom_corners = sorted(corners[2:], key=lambda x: x[1])
+    bottom_corners = sorted(bottom_corners, key=lambda x:x[0])
     corners = np.array(top_corners + bottom_corners, dtype=np.float32) # (top left, top right, bottom left, bottom right)
-
-    # print('corners', corners)
-    # image_with_polygon = cropped_image.copy()
-    # c = 50
-    # for corner in corners:
-    #     cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
-    #     c += 50
-    # cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
-    # cv2.imshow('img with poly', image_with_polygon)
-    # cv2.waitKey(0)
+    
+    if debug:
+        print('corners', corners)
+        image_with_polygon = cropped_image.copy()
+        c = 50
+        for corner in corners:
+            cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
+            c += 50
+        cv2.circle(image_with_polygon, (10, 70), 5, (0, 255, 0), -1)  # -1 fills the circle with the specified color
+        cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
+        cv2.imshow('img with poly', image_with_polygon)
+        cv2.waitKey(0)
 
     if corners.shape !=(4, 2):
         cv2.destroyAllWindows()
@@ -139,8 +141,10 @@ def getBoard(cropped_image):
     # Apply the perspective transformation
     warped_image = cv2.warpPerspective(thresh, transformation_matrix, (target_size, target_size))
     _, warped_image = cv2.threshold(warped_image, 128, 255, cv2.THRESH_BINARY)
-    # cv2.imshow('warped_image after threshold', warped_image)
-    # cv2.waitKey(0)
+    
+    if debug:
+        cv2.imshow('warped_image after threshold', warped_image)
+        cv2.waitKey(0)
 
     # cv2.destroyAllWindows() 
 
@@ -312,7 +316,6 @@ def is_oval(contour, tolerance=0.2):
     # Approximate the contour and check if the shape is closed
     epsilon = 0.02 * cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, epsilon, True)
-    print("num points", len(approx))
     if len(approx) < 5:  # Ovals will have many points in their approximation
         return False
 
@@ -322,7 +325,6 @@ def is_oval(contour, tolerance=0.2):
 
     # Compare the fitted ellipse with the original contour
     similarity = cv2.matchShapes(contour, ellipse_contour, 1, 0.0)
-    print(similarity, "similarity")
 
     return similarity < tolerance
 

@@ -31,7 +31,6 @@ class RootNode:
         elif self.gamestate is not None and not np.array_equal(self.gamestate, cur_gamestate):
             # change in gamestate detected
             rospy.loginfo("Detected change in gamestate!")
-            # TODO: check that there is only 1 change
             for i in range(9):
                 if self.gamestate[i] is None or self.gamestate[i] != cur_gamestate[i]:
                     self.gamestate[i] = cur_gamestate[i]
@@ -49,7 +48,7 @@ class RootNode:
             if check_win(self.gamestate) == "X":
                 #TODO: publish game over to motion node and draw line
                 pass
-        elif  check_draw(self.gamestate):
+        elif check_draw(self.gamestate):
             self.game_over = True
             print("DRAW DETECTED")
             # TODO: publish something 
