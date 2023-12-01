@@ -12,7 +12,11 @@ import sys
 # row_coord = [_, _, _] # TODO: x-coord corresponding to each row
 # col_coord = [_, _, _] # TODO: y-coord corresponding to each col
 
-def main():
+tuck = (0.694, 0.158, 0.525)
+row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] # TODO: x-coord corresponding to each row
+col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2/3, tuck[1] - 0.02 - 2 * 0.2/3] # TODO: y-coord corresponding to each col
+
+def main(msg):
     print("hello")
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
@@ -52,6 +56,33 @@ def main():
         request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
         try:
+            #move arm to correct grid spot
+            request.ik_request.pose_stamped.pose.position.x = row_coord[msg //3]
+            request.ik_request.pose_stamped.pose.position.y = col_coord[msg %3]
+            request.ik_request.pose_stamped.pose.position.z = 0.3   # TODO: dependent on whiteboard height 
+
+            # Send the request to the service
+            response = compute_ik(request)
+            
+            # Print the response HERE
+            print(response)
+            group = MoveGroupCommander("right_arm")
+
+            # Setting position and orientation target
+            group.set_pose_target(request.ik_request.pose_stamped)
+
+            # TRY THIS
+            # Setting just the position without specifying the orientation
+            # group.set_position_target([0.5, 0.5, 0.0])
+
+            # Plan IK
+            plan = group.plan()
+            user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            
+            # Execute IK if safe
+            if user_input == 'y':
+                group.execute(plan[1])
+
             # find curr location of end effector:
             trans = tfBuffer.lookup_transform("base", "stp_022310TP99251_tip", rospy.Time())   # TODO: may need to update frames
             # trans.transform.translation gives current x, y, z
@@ -60,7 +91,7 @@ def main():
             request.ik_request.pose_stamped.pose.position.x = trans.transform.translation.x
             request.ik_request.pose_stamped.pose.position.y = trans.transform.translation.y
             # request.ik_request.pose_stamped.pose.position.z = trans.transform.translation.z - height
-            request.ik_request.pose_stamped.pose.position.z = 0.016          
+            request.ik_request.pose_stamped.pose.position.z = 0.019          
 
             # move robot to loc 1
             # Send the request to the service
@@ -220,5 +251,5 @@ def main():
 
 # Python's syntax for a main() method
 if __name__ == '__main__':
-    main()
+    main(4)
 

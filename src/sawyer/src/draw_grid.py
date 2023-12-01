@@ -57,7 +57,7 @@ def main():
             # find curr location of end effector:
             x = trans.transform.translation.x   # TODO: grid loc x
             y = trans.transform.translation.y   # TODO: grid loc y
-            z = 0.016 #trans.transform.translation.z   # TODO: grid loc z (marker lifted)
+            z = 0.019 #trans.transform.translation.z   # TODO: grid loc z (marker lifted)
             
             # trans.transform.translation gives current x, y, z
             locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), # border horizontal
@@ -103,6 +103,7 @@ def main():
             for x1, y1, z1 in locs:
                     
                     # Set the desired orientation for the end effector HERE (marker touches board)
+                change = z1 - request.ik_request.pose_stamped.pose.position.z
                 request.ik_request.pose_stamped.pose.position.x = x1
                 request.ik_request.pose_stamped.pose.position.y = y1
                 request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
@@ -120,24 +121,30 @@ def main():
 
                 # Plan IK
                 plan = group.plan()
-                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                
                 
                 # # Execute IK if safe
-                # # if user_input == 'y':
-                # #     group.execute(plan[1])
 
-                # while user_input == 'n':
-                #     plan = group.plan()
-                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                if (change != 0):
+                    user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                
-                # if user_input == 'y':
-                group.execute(plan[1])  
+                    while user_input == 'n':
+                        plan = group.plan()
+                        user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+                    if user_input == 'y':
+                        group.execute(plan[1])
+
+                else:
+
+                    # if user_input == 'y':
+                    group.execute(plan[1])  
 
 
             for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
                     
                 # Set the desired orientation for the end effector HERE (marker touches board)
+                change = z1 - request.ik_request.pose_stamped.pose.position.z
                 request.ik_request.pose_stamped.pose.position.x = x1
                 request.ik_request.pose_stamped.pose.position.y = y1
                 request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
@@ -167,7 +174,21 @@ def main():
 
                 
                 # if user_input == 'y':
-                group.execute(plan[1])  
+                # group.execute(plan[1])  
+                if (change != 0):
+                    user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+                    while user_input == 'n':
+                        plan = group.plan()
+                        user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+                    if user_input == 'y':
+                        group.execute(plan[1])
+
+                else:
+
+                    # if user_input == 'y':
+                    group.execute(plan[1])  
             # ---------------------------------------------
             # 
             # 

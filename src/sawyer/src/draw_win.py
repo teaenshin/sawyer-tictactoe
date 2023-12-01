@@ -1,9 +1,3 @@
-# PACKAGE OF FILE SHOULD INCLUDE intera_interface, rospy and std_msgs
-# (also need planning package from lab 5)
-
-# Current implementation: subscribes to "grid_index" topic, reads the index and moves to it
-# (includes all of the planning visualization stuff, idk if we want to keep)
-
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Int16MultiArray
@@ -15,8 +9,12 @@ from numpy import linalg
 import sys
 
 # TODO: modify so that it's the center coords
-row_coord = [0.839, 0.775, 0.710]
-col_coord = [0.141, 0.077, 0.012]
+# row_coord = [0.839, 0.775, 0.710]
+# col_coord = [0.141, 0.077, 0.012]
+
+tuck = (0.694, 0.158, 0.525)
+row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] # TODO: x-coord corresponding to each row
+col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6] # TODO: y-coord corresponding to each col
 
 # # #
 # # #
@@ -51,11 +49,11 @@ def callback(msg):
         request.ik_request.pose_stamped.pose.orientation.z = 0.0
         request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
-        z = 0.016
+        z = 0.019
         
         try:
 
-            locs = [(row_coord[msg.data[0]//3], col_coord[msg.data[0]%3], z), (row_coord[msg.data[1]//3], col_coord[msg.data[1]%3], z), (row_coord[msg.data[2]//3], col_coord[msg.data[2]%3], z), (0.694, 0.158, 0.525)]
+            locs = [(row_coord[msg[0]//3], col_coord[msg[0]%3], z), (row_coord[msg[1]//3], col_coord[msg[1]%3], z), (row_coord[msg[2]//3], col_coord[msg[2]%3], z), (0.694, 0.158, 0.525)]
 
             for x1, y1, z1 in locs:
                     
@@ -77,7 +75,7 @@ def callback(msg):
 
                 # Plan IK
                 plan = group.plan()
-                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
                 
                 # # Execute IK if safe
                 # # if user_input == 'y':
@@ -87,8 +85,8 @@ def callback(msg):
                 #     plan = group.plan()
                 #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                # if user_input == 'y':
-                group.execute(plan[1])  
+                if user_input == 'y':
+                    group.execute(plan[1])  
             
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
@@ -117,7 +115,7 @@ if __name__ == '__main__':
     # rospy.init_node('listener', anonymous=True) # ??
 
     # listener()
-    callback()
+    callback([0, 3, 6])
 
 
 # lab5/src/move_arm/src/ik_example.py
