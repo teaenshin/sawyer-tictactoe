@@ -73,15 +73,12 @@ def crop_image(image, contour):
     '''
     Crops image to a given contour
     '''
-    if contour is None or len(contour) == 0:
-        print("Error: contour is empty")
-        return None
-    blackout(image, contour)
+    whiteout(image, contour)
     x, y, w, h = cv2.boundingRect(contour)
     cropped_image = image[y:y+h, x:x+w]
     return cropped_image
 
-def blackout(image, contour):
+def whiteout(image, contour):
     mask = np.zeros_like(image)
     # Draw the contour on the mask with white color and thickness of -1 (fill the contour)
     cv2.drawContours(mask, [contour], 0, (255, 255, 255), -1)

@@ -25,6 +25,9 @@ class VisionNode:
             color_image = self.get_color_image()
             # color_image = cv2.imread('/home/cc/ee106a/fa23/class/ee106a-aem/sawyer-tictactoe/src/vision/src/imgs/cam3.jpg')
             self.whiteboard = get_whiteboard(color_image) # largest contour, used to identify whether board is obstructed
+            if self.whiteboard is None:
+                print("No whiteboard detected")
+                continue
             
             if debug:
                 copy = color_image.copy()
@@ -81,6 +84,9 @@ class VisionNode:
 
         # don't publish when board not detected/
         cur_whiteboard = get_whiteboard(color_image)
+        if cur_whiteboard is None:
+            print("No whiteboard detected")
+            return None
         print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
 
         if cv2.contourArea(cur_whiteboard) / cv2.contourArea(self.whiteboard) < 0.7:
