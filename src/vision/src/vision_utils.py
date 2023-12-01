@@ -7,45 +7,18 @@ from PIL import Image
 
 ### PROCESS BOARD FROM CAM ###
 
-# def get_whiteboard(color_image):
-#     '''
-#     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
-#     If no largest contour detected, will return None
-#     '''
-#     hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
-
-#     lower_hsl = np.array([0, 0, 0])  
-#     upper_hsl = np.array([180, 255, 35]) 
-
-
-#     mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
-#     cv2.imshow('mask', mask)
-#     cv2.waitKey(0)
-#     # Find contours in the masked image
-#     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-#     # If there are no contours, return None
-#     if not contours:
-#         print("Error: there are no contours")
-#         return None
-
-#     # Find the largest contour by area
-#     largest_contour = max(contours, key=cv2.contourArea)
-#     return largest_contour
-
 def get_whiteboard(color_image):
     '''
     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
     If no largest contour detected, will return None
     '''
-    hsv = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
+    hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
-    lower_hsv = np.array([0, 0, 160])  
-    upper_hsv = np.array([180, 80, 255]) 
+    lower_hsl = np.array([0, 0, 0])  
+    upper_hsl = np.array([180, 255, 35]) 
 
-    mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
-    # Create a binary mask for the white paper
 
+    mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
     # cv2.imshow('mask', mask)
     # cv2.waitKey(0)
     # Find contours in the masked image
@@ -59,6 +32,33 @@ def get_whiteboard(color_image):
     # Find the largest contour by area
     largest_contour = max(contours, key=cv2.contourArea)
     return largest_contour
+
+# def get_whiteboard(color_image):
+#     '''
+#     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
+#     If no largest contour detected, will return None
+#     '''
+#     hsv = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
+
+#     lower_hsv = np.array([0, 0, 160])  
+#     upper_hsv = np.array([180, 80, 255]) 
+
+#     mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
+#     # Create a binary mask for the white paper
+
+#     cv2.imshow('mask', mask)
+#     cv2.waitKey(0)
+#     # Find contours in the masked image
+#     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+#     # If there are no contours, return None
+#     if not contours:
+#         print("Error: there are no contours")
+#         return None
+
+#     # Find the largest contour by area
+#     largest_contour = max(contours, key=cv2.contourArea)
+#     return largest_contour
 
 # def get_contour_center(contour):
 #     M = cv2.moments(contour)
