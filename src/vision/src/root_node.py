@@ -8,7 +8,7 @@ from utils import *
 from vision.msg import BoardData
 from vision.srv import Robot
 
-# Import definition of DRAW REQUESt (srv)
+# TODO: clean up code in this file
 
 class RootNode:
     ''' Subscriber for gamestate'''
@@ -17,7 +17,6 @@ class RootNode:
         self.subscriber = rospy.Subscriber("board_data_topic", BoardData, self.gamestate_callback)
         self.gamestate = None
         self.game_over = False
-        self.updated = False
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -41,7 +40,6 @@ class RootNode:
                     change = self.gamestate[i]
         if change:
             self.update(change)
-            self.updated = True
 
     # player is either X or O and depending on which one it is we act accordingly
     def update(self, player):
@@ -49,8 +47,8 @@ class RootNode:
         if check_win(self.gamestate):
             self.game_over = True
             if check_win(self.gamestate) == "X":
-                #TODO: publish game over to motion node and draw line
-                pass
+                win = self.getRobotWin(self.gamestate)
+                self.robot_client(1, None, win)
         elif check_draw(self.gamestate):
             self.game_over = True
             print("DRAW DETECTED")
@@ -60,13 +58,10 @@ class RootNode:
             if player == "O": # if human just went
                 move = self.pick_move()
                 print(f"Robot should draw at cell {move}")
-                #TODO publish where to draw  X
+                self.robot_client(0, move, None)
         
     def pick_move(self):
-        # If center is still open go center this will happen in the first two turns for sure
-        if self.gamestate[4] == "":
-            return 4
-        # Otherwise loop through all open spots
+        
         # If any spot either gives you the win, or would give the other player the win, pick it
         for i in range(9):
             if self.gamestate[i] == "":
@@ -77,22 +72,17 @@ class RootNode:
                 temp_gamestate[i] = "O"
                 if check_win(temp_gamestate):
                     return i
+                
+        # If center is still open go center this will happen in the first two turns for sure
+        if self.gamestate[4] == "":
+            return 4
         
         # If neither of those pick the first open spot
         #TODO better strategy
         for i in range(9):
             if self.gamestate[i] == "":
                 return i
-
-
-    # def call_draw_service(self, x):
-    #     rospy.wait_for_service('/draw')
-    #     try:
-    #         service = rospy.ServiceProxy('/draw', DRAW_REQUEST)
-    #         resp = service(x)
-    #         return resp.success, resp.message
-    #     except rospy.ServiceException as e:
-    #         rospy.logerr("Service call failed: %s", e)
+            
 
     def getPossibleMoves(self):
         '''
@@ -153,27 +143,12 @@ class RootNode:
         if self.getWinner(self.gamestate) == "robot":
             return win
 
-    def robot_client(self):
+    def robot_client(self, type, idx, win):
         rospy.wait_for_service('/draw_service')
 
         try: 
             robot_proxy = rospy.ServiceProxy('/draw_service', Robot)
-
-            win = self.getRobotWin(self.gamestate)
-
-            # robot won -> robot draws win line
-            if win is not None:
-                robot_proxy(1, None, win)
-
-            # human made move -> robot draws x
-            elif not self.getWinner() and self.updated:  # check that human made move and the game is not over
-                idx = self.pick_move()
-                self.updated = False
-                robot_proxy(0, idx, None)
-
-            else:
-                robot_proxy(-1, None, None)
-
+            robot_proxy(type, idx, win)
 
         except rospy.ServiceException as e:
             rospy.loginfo(e)
