@@ -100,7 +100,7 @@ class VisionNode:
         if cur_whiteboard is None:
             print("No whiteboard detected")
             return None
-        print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
+        #print('og whiteboard contour area vs cur', cv2.contourArea(self.whiteboard), cv2.contourArea(cur_whiteboard))
 
         if cv2.contourArea(cur_whiteboard) / cv2.contourArea(self.whiteboard) < 0.7:
             return None

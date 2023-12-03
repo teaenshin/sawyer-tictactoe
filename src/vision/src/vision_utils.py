@@ -112,11 +112,11 @@ def getBoard(cropped_image, debug=False):
     ### warp grid into square
     # Define the four corners of the target square
     target_size = 300
-    target_corners = np.array([ [0, 0], [0, target_size - 1], [target_size - 1, 0] ,[target_size - 1, target_size - 1] ],  dtype=np.float32) 
+    target_corners = np.array([ [0, 0], [target_size - 1, 0] , [0, target_size - 1], [target_size - 1, target_size - 1] ],  dtype=np.float32) 
     corners = np.float32(corners) # convert to np.float32 for cv2.warpPerspective
-    top_corners = sorted(corners[:2], key=lambda x:x[1])
+    top_corners = sorted(corners, key=lambda x:x[1])[:2]
     top_corners = sorted(top_corners, key=lambda x:x[0])
-    bottom_corners = sorted(corners[2:], key=lambda x: x[1])
+    bottom_corners = sorted(corners, key=lambda x: x[1])[2:]
     bottom_corners = sorted(bottom_corners, key=lambda x:x[0])
     corners = np.array(top_corners + bottom_corners, dtype=np.float32) # (top left, top right, bottom left, bottom right)
     
