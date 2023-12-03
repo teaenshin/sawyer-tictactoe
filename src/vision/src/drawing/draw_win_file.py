@@ -17,66 +17,65 @@ def draw_win(msg):
     rospy.wait_for_service('compute_ik')
     # Create the function used to call the service
     compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
-    while not rospy.is_shutdown():
-        input('Press [ Enter ]: ')
-        
-        # Construct the request
-        request = GetPositionIKRequest()
-        request.ik_request.group_name = "right_arm"
+    input('Press [ Enter ]: ')
+    
+    # Construct the request
+    request = GetPositionIKRequest()
+    request.ik_request.group_name = "right_arm"
 
-        # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "stp_022310TP99251_tip" #"right_gripper_tip"
+    # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
+    link = "stp_022310TP99251_tip" #"right_gripper_tip"
 
-        request.ik_request.ik_link_name = link
-        request.ik_request.pose_stamped.header.frame_id = "base"
-        
-        # Set the desired orientation for the end effector HERE 
-        request.ik_request.pose_stamped.pose.orientation.x = 0.0
-        request.ik_request.pose_stamped.pose.orientation.y = 1.0
-        request.ik_request.pose_stamped.pose.orientation.z = 0.0
-        request.ik_request.pose_stamped.pose.orientation.w = 0.0
+    request.ik_request.ik_link_name = link
+    request.ik_request.pose_stamped.header.frame_id = "base"
+    
+    # Set the desired orientation for the end effector HERE 
+    request.ik_request.pose_stamped.pose.orientation.x = 0.0
+    request.ik_request.pose_stamped.pose.orientation.y = 1.0
+    request.ik_request.pose_stamped.pose.orientation.z = 0.0
+    request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
-        z = 0.015
-        
-        try:
+    z = 0.017
+    
+    try:
 
-            locs = [(row_coord[msg[0]//3], col_coord[msg[0]%3], z), (row_coord[msg[1]//3], col_coord[msg[1]%3], z), (row_coord[msg[2]//3], col_coord[msg[2]%3], z), (0.694, 0.158, 0.525)]
+        locs = [(row_coord[msg[0]//3], col_coord[msg[0]%3], z), (row_coord[msg[1]//3], col_coord[msg[1]%3], z), (row_coord[msg[2]//3], col_coord[msg[2]%3], z), (0.694, 0.158, 0.525)]
 
-            for x1, y1, z1 in locs:
-                    
-                # Set the desired orientation for the end effector HERE (marker touches board)
-                request.ik_request.pose_stamped.pose.position.x = x1
-                request.ik_request.pose_stamped.pose.position.y = y1
-                request.ik_request.pose_stamped.pose.position.z = z1       
-
-                # move robot to loc 1
-                # Send the request to the service
-                response = compute_ik(request)
+        for x1, y1, z1 in locs:
                 
-                # Print the response HERE
-                print(response)
-                group = MoveGroupCommander("right_arm")
+            # Set the desired orientation for the end effector HERE (marker touches board)
+            request.ik_request.pose_stamped.pose.position.x = x1
+            request.ik_request.pose_stamped.pose.position.y = y1
+            request.ik_request.pose_stamped.pose.position.z = z1       
 
-                # Setting position and orientation target
-                group.set_pose_target(request.ik_request.pose_stamped)
-
-                # Plan IK
-                plan = group.plan()
-                user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
-                
-                # # Execute IK if safe
-                # # if user_input == 'y':
-                # #     group.execute(plan[1])
-
-                # while user_input == 'n':
-                #     plan = group.plan()
-                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
-
-                if user_input == 'y':
-                    group.execute(plan[1])  
+            # move robot to loc 1
+            # Send the request to the service
+            response = compute_ik(request)
             
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+            # Print the response HERE
+            print(response)
+            group = MoveGroupCommander("right_arm")
+
+            # Setting position and orientation target
+            group.set_pose_target(request.ik_request.pose_stamped)
+
+            # Plan IK
+            plan = group.plan()
+            user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            
+            # # Execute IK if safe
+            # # if user_input == 'y':
+            # #     group.execute(plan[1])
+
+            # while user_input == 'n':
+            #     plan = group.plan()
+            #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+
+            if user_input == 'y':
+                group.execute(plan[1])  
+        
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)
 
 # Python's syntax for a main() method
 if __name__ == '__main__':

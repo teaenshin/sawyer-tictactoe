@@ -20,7 +20,7 @@ def robot_callback(request):
     return []
 
 def robot_server():
-    rospy.init_node('robot_server1')
+    rospy.init_node('robot_server')
     print("init")
     s = rospy.Service('/draw_service', Robot, robot_callback)
     rospy.spin()

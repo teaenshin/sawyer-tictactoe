@@ -47,18 +47,18 @@ class RootNode:
         if check_win(self.gamestate):
             self.game_over = True
             if check_win(self.gamestate) == "X":
-                win = self.getRobotWin(self.gamestate)
+                win = self.getWinningThree()
                 self.robot_client(1, None, win)
         elif check_draw(self.gamestate):
             self.game_over = True
             print("DRAW DETECTED")
             # TODO: publish something 
-            pass
+            
         else:
             if player == "O": # if human just went
                 move = self.pick_move()
                 print(f"Robot should draw at cell {move}")
-                self.robot_client(0, move, None)
+                self.robot_client(0, 8-move, None)
         
     def pick_move(self):
         
@@ -84,14 +84,6 @@ class RootNode:
                 return i
             
 
-    def getPossibleMoves(self):
-        '''
-        return an array of all the possible moves a robot can take
-        if there are no possible moves return empty array, this means our board is full and the game is over
-        '''
-        return [i for i in range(len(self.gamestate)) if self.gamestate[i] == None]
-
-
     def getWinningThree(self):
         '''
         returns a 3x1 array of the board indices for the winning 3 in a row
@@ -109,42 +101,16 @@ class RootNode:
             first, second, third = w
 
             if self.gamestate[first] == self.gamestate[second] == self.gamestate[third] and self.gamestate[first] != None:
-                return w
+                return [8-x for x in w]
 
         # no valid three in a row was found
         return None
 
-    def getWinner(self):
-        '''
-        if the game is not over, return None
-        return 'robot' if the robot wins, based on whether there are 3 'X's in a row on the board
-        return 'human' if the human wins, based on whether there are 3 'O's in a row on the board
-        return 'draw' if neither robot or human won
-        '''
 
-        win = self.getWinningThree(self.gamestate)
-            
-        if win and self.gamestate[win[0]] == 'X': 
-            return "robot"
-
-        elif win and self.gamestate[win[0]] == 'O': 
-            return "human"
-
-        elif self.getPossibleMoves(self.gamestate) == 0:
-            return "draw"
-
-        else:
-            return None
-
-    def getRobotWin(self):
-
-        win = self.getWinningThree(self.gamestate)
-
-        if self.getWinner(self.gamestate) == "robot":
-            return win
 
     def robot_client(self, type, idx, win):
         rospy.wait_for_service('/draw_service')
+        print("service is ready")
 
         try: 
             robot_proxy = rospy.ServiceProxy('/draw_service', Robot)
@@ -155,6 +121,9 @@ class RootNode:
 
 
     def main(self):
+        print("in the main")
+        rospy.wait_for_service('/draw_service')
+        print("service is ready")
         while not rospy.is_shutdown() and not self.game_over:
             rospy.sleep(0.1)
 
