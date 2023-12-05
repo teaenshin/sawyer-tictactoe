@@ -8,6 +8,9 @@ import numpy as np
 from numpy import linalg
 import sys
 
+# SET THIS BEFOREHAND
+z = -0.087 #trans.transform.translation.z 
+
 def main():
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
@@ -35,7 +38,7 @@ def main():
         request.ik_request.group_name = "right_arm"
 
         # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-        link = "stp_022310TP99251_tip" #"right_gripper_tip"
+        link = "stp_022310TP99251_tip_1" #"right_gripper_tip"
 
         request.ik_request.ik_link_name = link
         request.ik_request.pose_stamped.header.frame_id = "base"
@@ -49,13 +52,13 @@ def main():
         height = 0.02
         
         try:
-            trans = tfBuffer.lookup_transform("base", "stp_022310TP99251_tip", rospy.Time())   # TODO: may need to update frames
+            trans = tfBuffer.lookup_transform("base", link, rospy.Time())   # TODO: may need to update frames
             # trans.transform.translation gives current x, y, z
             
             # find curr location of end effector:
             x = trans.transform.translation.x
             y = trans.transform.translation.y
-            z = 0.015 #trans.transform.translation.z 
+            
             
             # trans.transform.translation gives current x, y, z
             locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), # border horizontal
@@ -89,20 +92,20 @@ def main():
                 
                 # # Execute IK if safe
 
-                if (change != 0):
-                    user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                # if (change != 0):
+                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                    while user_input == 'n':
-                        plan = group.plan()
-                        user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                #     while user_input == 'n':
+                #         plan = group.plan()
+                #         user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                    if user_input == 'y':
-                        group.execute(plan[1])
+                #     if user_input == 'y':
+                #         group.execute(plan[1])
 
-                else:
+                # else:
 
-                    # if user_input == 'y':
-                    group.execute(plan[1])  
+                #     # if user_input == 'y':
+                group.execute(plan[1])  
 
 
             for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
@@ -139,20 +142,20 @@ def main():
                 
                 # if user_input == 'y':
                 # group.execute(plan[1])  
-                if (change != 0):
-                    user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                # if (change != 0):
+                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                    while user_input == 'n':
-                        plan = group.plan()
-                        user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                #     while user_input == 'n':
+                #         plan = group.plan()
+                #         user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                    if user_input == 'y':
-                        group.execute(plan[1])
+                #     if user_input == 'y':
+                #         group.execute(plan[1])
 
-                else:
+                # else:
 
-                    # if user_input == 'y':
-                    group.execute(plan[1])  
+                #     # if user_input == 'y':
+                group.execute(plan[1])  
            
             
         except rospy.ServiceException as e:

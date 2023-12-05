@@ -77,6 +77,11 @@ class RootNode:
         if self.gamestate[4] == "":
             return 4
         
+        corners = [0, 2, 6, 8]
+        for corner in corners:
+            if self.gamestat[corner] == "":
+                return corner
+        
         # If neither of those pick the first open spot
         #TODO better strategy
         for i in range(9):
@@ -121,14 +126,14 @@ class RootNode:
 
 
     def main(self):
-        print("in the main")
+        print("START ROOT_NODE")
         rospy.wait_for_service('/draw_service')
-        print("service is ready")
+        print("/DRAW_SERVICE IS READY")
         while not rospy.is_shutdown() and not self.game_over:
             rospy.sleep(0.1)
 
         # Perform any cleanup if necessary before exiting
-        rospy.loginfo("Exiting the node")
+        rospy.loginfo("Exiting root_node")
 
 if __name__ == '__main__':
     root = RootNode()

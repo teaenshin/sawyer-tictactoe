@@ -10,7 +10,9 @@ def handle_service_request(req):
     return DRAW_RESPONSE(True, response)
 
 def draw_service():
+    print("START DRAW_SERVICE")
     rospy.init_node('draw_service_node')
+    print("draw_service inited")
     s = rospy.Service('draw_service', DRAW_REQUEST, handle_service_request)
     rospy.spin()
 

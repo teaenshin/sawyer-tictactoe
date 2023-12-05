@@ -119,13 +119,12 @@ class VisionNode:
         gamestate = get_state(cells)    
         return gamestate
 
-
-
     
 
 if __name__ == '__main__':
     node = VisionNode()
     node.setup_vision()
+    print("VISION SETUP IS DONE!")
 
     try:
         node.publish_board_data()

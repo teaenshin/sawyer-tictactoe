@@ -8,6 +8,7 @@ from moveit_commander import MoveGroupCommander
 import numpy as np
 from numpy import linalg
 import sys
+import draw_grid_file 
 
 
 tuck = (0.694, 0.158, 0.525)
@@ -56,7 +57,7 @@ def draw_x(msg):
     z0 = 0.3
     x = row_coord[msg //3]
     y = col_coord[msg %3]
-    z = 0.015
+    z = draw_grid_file.z
 
     try:
 
