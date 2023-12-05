@@ -22,6 +22,8 @@ class RootNode:
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
     # In that case we would add a timer and ensure there is a minimum time buffer between callbacks
     def gamestate_callback(self, data):
+        if self.game_over:
+            return
         cur_gamestate = np.array(data.data)
         rospy.loginfo(rospy.get_caller_id() + " received data: %s", cur_gamestate)
 
@@ -79,7 +81,7 @@ class RootNode:
         
         corners = [0, 2, 6, 8]
         for corner in corners:
-            if self.gamestat[corner] == "":
+            if self.gamestate[corner] == "":
                 return corner
         
         # If neither of those pick the first open spot
