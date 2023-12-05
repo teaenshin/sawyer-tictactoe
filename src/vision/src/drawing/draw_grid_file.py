@@ -8,7 +8,7 @@ import numpy as np
 from numpy import linalg
 import sys
 
-# SET THIS BEFOREHAND
+# SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
 z = -0.087 #trans.transform.translation.z 
 
 def main():
@@ -85,6 +85,7 @@ def main():
 
                 # Setting position and orientation target
                 group.set_pose_target(request.ik_request.pose_stamped)
+                group.limit_max_cartesian_link_speed(0.2)
 
                 # Plan IK
                 plan = group.plan()
@@ -107,8 +108,18 @@ def main():
                 #     # if user_input == 'y':
                 group.execute(plan[1])  
 
+            input("Move Sawyer to position behind the whiteboard. Avoid fully extending the arm. ")
 
-            for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
+
+            vertLocs = [(x, y, z), (x+width/3, y, z), (x+2*width/3, y, z), (x+width, y, z), (x+width, y, z+height),
+                        (x, y-width/3, z+height), (x, y-width/3, z), (x+width/3, y-width/3, z), (x+2*width/3, y-width/3, z), (x+width, y-width/3, z), (x+width, y-width/3, z+height),
+                        (x, y-2*width/3, z+height), (x, y-2*width/3, z), (x+width/3, y-2*width/3, z), (x+2*width/3, y-2*width/3, z), (x+width, y-2*width/3, z), (x+width, y-2*width/3, z+height),
+                        (x, y-width, z+height), (x, y-width, z), (x+width/3, y-width, z), (x+2*width/3, y-width, z), (x+width, y-width, z), (x+width, y-width, z+height)
+                    ]
+
+            # for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
+
+            for x1, y1, z1 in vertLocs + [(0.694, 0.158, 0.525)]: # last coord is tuck
                     
                 # Set the desired orientation for the end effector HERE (marker touches board)
                 change = z1 - request.ik_request.pose_stamped.pose.position.z
@@ -126,14 +137,15 @@ def main():
 
                 # Setting position and orientation target
                 group.set_pose_target(request.ik_request.pose_stamped)
+                group.limit_max_cartesian_link_speed(0.5)
 
                 # Plan IK
                 plan = group.plan()
-                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
                 
                 # # Execute IK if safe
-                # # if user_input == 'y':
-                # #     group.execute(plan[1])
+                if user_input == 'y':
+                    group.execute(plan[1])
 
                 # while user_input == 'n':
                 #     plan = group.plan()
@@ -155,7 +167,7 @@ def main():
                 # else:
 
                 #     # if user_input == 'y':
-                group.execute(plan[1])  
+                # group.execute(plan[1])  
            
             
         except rospy.ServiceException as e:

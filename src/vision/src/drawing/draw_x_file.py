@@ -8,8 +8,9 @@ from moveit_commander import MoveGroupCommander
 import numpy as np
 from numpy import linalg
 import sys
-import draw_grid_file 
 
+# SET BEFOREHAND
+z = -0.087 
 
 tuck = (0.694, 0.158, 0.525)
 row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] 
@@ -37,7 +38,7 @@ def draw_x(msg):
     #       / \
     # (6) /     \ (2)(3)
     # while not rospy.is_shutdown():
-    input('Press [ Enter ]: ')
+    # input('Press [ Enter ]: ')
     
     # Construct the request
     request = GetPositionIKRequest()
@@ -57,7 +58,6 @@ def draw_x(msg):
     z0 = 0.3
     x = row_coord[msg //3]
     y = col_coord[msg %3]
-    z = draw_grid_file.z
 
     try:
 

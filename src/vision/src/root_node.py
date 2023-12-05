@@ -130,6 +130,7 @@ class RootNode:
         rospy.wait_for_service('/draw_service')
         print("/DRAW_SERVICE IS READY")
         while not rospy.is_shutdown() and not self.game_over:
+            print("GAME IS OVER")
             rospy.sleep(0.1)
 
         # Perform any cleanup if necessary before exiting

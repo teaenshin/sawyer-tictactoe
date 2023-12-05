@@ -8,6 +8,9 @@ import numpy as np
 from numpy import linalg
 import sys
 
+# SET THIS BEFORE HAND
+z = -0.087 
+
 tuck = (0.694, 0.158, 0.525)
 row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] 
 col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6]
@@ -17,7 +20,7 @@ def draw_win(msg):
     rospy.wait_for_service('compute_ik')
     # Create the function used to call the service
     compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
-    input('Press [ Enter ]: ')
+    # input('Press [ Enter ]: ')
     
     # Construct the request
     request = GetPositionIKRequest()
@@ -35,7 +38,7 @@ def draw_win(msg):
     request.ik_request.pose_stamped.pose.orientation.z = 0.0
     request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
-    z = 0.017
+    
     
     try:
 
@@ -61,7 +64,7 @@ def draw_win(msg):
 
             # Plan IK
             plan = group.plan()
-            user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+            # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
             
             # # Execute IK if safe
             # # if user_input == 'y':
@@ -71,8 +74,8 @@ def draw_win(msg):
             #     plan = group.plan()
             #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-            if user_input == 'y':
-                group.execute(plan[1])  
+            # if user_input == 'y':
+            group.execute(plan[1])  
         
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)

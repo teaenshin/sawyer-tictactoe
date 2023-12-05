@@ -91,9 +91,11 @@ def getBoard(cropped_image, debug=False):
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
     # bi = cv2.bilateralFilter(gray, 5, 75, 75)
 
-    _, thresh = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
     
     thresh = 255 - thresh # invert so grid becomes white
+    # cv2.imshow('thresh', thresh)
+    # cv2.waitKey(0)
 
     ### Get largest contour, which should be the grid
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
