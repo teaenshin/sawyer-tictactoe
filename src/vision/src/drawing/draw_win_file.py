@@ -7,9 +7,11 @@ from moveit_commander import MoveGroupCommander
 import numpy as np
 from numpy import linalg
 import sys
+from drawing import draw_grid_file
+import joint_angles
 
 # SET THIS BEFORE HAND
-z = -0.087 
+z = draw_grid_file.z
 
 tuck = (0.694, 0.158, 0.525)
 row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] 
@@ -27,7 +29,7 @@ def draw_win(msg):
     request.ik_request.group_name = "right_arm"
 
     # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-    link = "stp_022310TP99251_tip" #"right_gripper_tip"
+    link = "stp_022312TP99620_tip" #"right_gripper_tip"
 
     request.ik_request.ik_link_name = link
     request.ik_request.pose_stamped.header.frame_id = "base"
@@ -76,6 +78,9 @@ def draw_win(msg):
 
             # if user_input == 'y':
             group.execute(plan[1])  
+
+        # go to default position
+        # joint_angles.main()
         
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)

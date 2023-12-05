@@ -3,6 +3,8 @@ import rospy
 from vision.srv import Robot
 from drawing import draw_x_file
 from drawing import draw_win_file
+from drawing import draw_grid_file
+from drawing import erase_grid_file
 
 def robot_callback(request):
     print("Received request type: %s" % request.type)
@@ -14,6 +16,13 @@ def robot_callback(request):
     if request.type == 1:
         win = request.win
         draw_win_file.draw_win(win)
+
+
+    if request.type == 2:
+        draw_grid_file.draw_grid()
+
+    if request.type == 3:
+        erase_grid_file.erase_grid()
 
     # response = "Received: " + str(req.data)
     # return DRAW_RESPONSE(True, response)

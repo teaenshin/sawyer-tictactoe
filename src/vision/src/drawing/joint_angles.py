@@ -38,8 +38,9 @@ def go_to_angles(side, angles):
             rospy.signal_shutdown("Example finished.")
 
     for joint in joints:
-        angle = float(input(f"{joint} Angle:"))
-        joint_command[joint] = angle
+        # angle = float(input(f"{joint} Angle:"))
+        # joint_command[joint] = angle
+        angle = joint_command[joint]
 
         delta = 1
         while not rospy.is_shutdown() and abs(delta) > 0.01:
@@ -67,20 +68,11 @@ See help inside the example with the '?' key for key bindings.
         rp.log_message(("Cannot detect any limb parameters on this robot. "
                         "Exiting."), "ERROR")
         return
-    arg_fmt = argparse.RawDescriptionHelpFormatter
-    parser = argparse.ArgumentParser(formatter_class=arg_fmt,
-                                     description=main.__doc__,
-                                     epilog=epilog)
-    parser.add_argument(
-        "-l", "--limb", dest="limb", default=valid_limbs[0],
-        choices=valid_limbs,
-        help="Limb on which to run the joint position keyboard example"
-    )
-    args = parser.parse_args(rospy.myargv()[1:])
-    angles [0] * 7
+
+    angles = [0.18581640625, 1.0606513671875, 0.165806640625, -1.8724892578125, -0.1731123046875, 2.20851953125, 1.64812890625]
 
     print("Initializing node... ")
-    rospy.init_node("sdk_joint_position_keyboard")
+    # rospy.init_node("sdk_joint_position_keyboard")
     print("Getting robot state... ")
     rs = intera_interface.RobotEnable(CHECK_VERSION)
     init_state = rs.state().enabled
@@ -93,7 +85,7 @@ See help inside the example with the '?' key for key bindings.
     rospy.loginfo("Enabling robot...")
     rs.enable()
     # CODE START
-    go_to_angles(args.limb, angles)
+    go_to_angles(valid_limbs[0], angles)
     # CODE END
     print("Done.")
 

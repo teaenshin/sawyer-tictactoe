@@ -17,6 +17,7 @@ class RootNode:
         self.subscriber = rospy.Subscriber("board_data_topic", BoardData, self.gamestate_callback)
         self.gamestate = None
         self.game_over = False
+        self.robot_client(2, None, None) # draw grid
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -133,6 +134,7 @@ class RootNode:
         print("/DRAW_SERVICE IS READY")
         while not rospy.is_shutdown() and not self.game_over:
             print("GAME IS OVER")
+            self.robot_client(3, None, None) # erase board
             rospy.sleep(0.1)
 
         # Perform any cleanup if necessary before exiting
