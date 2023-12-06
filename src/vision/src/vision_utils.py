@@ -127,7 +127,8 @@ def getBoard(cropped_image, debug=False):
         image_with_polygon = cropped_image.copy()
         c = 50
         for corner in corners:
-            cv2.circle(image_with_polygon, tuple(corner), 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
+            center = (int(corner[0]), int(corner[1]))
+            cv2.circle(image_with_polygon, center, 5, (0, 0, c), -1)  # -1 fills the circle with the specified color
             c += 50
         cv2.circle(image_with_polygon, (10, 70), 5, (0, 255, 0), -1)  # -1 fills the circle with the specified color
         cv2.drawContours(image_with_polygon, [approx_polygon], -1, (0, 255, 0), 2)
