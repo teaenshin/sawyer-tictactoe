@@ -11,7 +11,7 @@ from drawing import draw_grid_file
 import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
-z = draw_grid_file.z + 0.022 #0.036
+z = draw_grid_file.Z + 0.022 #0.036
 # z = -0.065 #trans.transform.translation.z 
 
 def erase_grid():
@@ -38,10 +38,10 @@ def erase_grid():
     
     # Construct the request
     request = GetPositionIKRequest()
-    request.ik_request.group_name = "right_arm"
+    request.ik_request.group_name = draw_grid_file.GROUP_NAME
 
     # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-    link = "stp_022312TP99620_tip" #"right_gripper_tip"
+    link = draw_grid_file.LINK #"right_gripper_tip"
 
     request.ik_request.ik_link_name = link
     request.ik_request.pose_stamped.header.frame_id = "base"
@@ -94,7 +94,7 @@ def erase_grid():
             
             # Print the response HERE
             print(response)
-            group = MoveGroupCommander("right_arm")
+            group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)

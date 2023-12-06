@@ -17,7 +17,6 @@ def robot_callback(request):
         win = request.win
         draw_win_file.draw_win(win)
 
-
     if request.type == 2:
         draw_grid_file.draw_grid()
 

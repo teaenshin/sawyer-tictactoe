@@ -12,7 +12,7 @@ from drawing import draw_grid_file
 import joint_angles
 
 # SET BEFOREHAND
-z = draw_grid_file.z
+z = draw_grid_file.Z
 
 tuck = (0.694, 0.158, 0.525)
 row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] 
@@ -44,10 +44,10 @@ def draw_x(msg):
     
     # Construct the request
     request = GetPositionIKRequest()
-    request.ik_request.group_name = "right_arm"
+    request.ik_request.group_name = draw_grid_file.GROUP_NAME
 
     # If a Sawyer does not have a gripper, replace '_gripper_tip' with '_wrist' instead
-    link = "stp_022312TP99620_tip"
+    link = draw_grid_file.LINK
 
     request.ik_request.ik_link_name = link
     # request.ik_request.attempts = 20
@@ -77,7 +77,7 @@ def draw_x(msg):
             
             # Print the response HERE
             print(response)
-            group = MoveGroupCommander("right_arm")
+            group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)
