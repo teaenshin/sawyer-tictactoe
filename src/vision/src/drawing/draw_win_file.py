@@ -15,6 +15,7 @@ z = draw_grid_file.z
 
 # tuck = (0.694, 0.158, 0.525)
 tuck = joint_angles.CUSTOM_TUCK
+# corner = (,) just use corner instead of tuck? if needed
 row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] 
 col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6]
 

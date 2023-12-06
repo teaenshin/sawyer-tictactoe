@@ -63,7 +63,7 @@ def draw_grid():
     height = 0.04
     
     try:
-        trans = tfBuffer.lookup_transform("base", link, rospy.Time())   # TODO: may need to update frames
+        # trans = tfBuffer.lookup_transform("base", link, rospy.Time())   # TODO: may need to update frames
         # trans.transform.translation gives current x, y, z
         # x = trans.transform.translation.x
         # y = trans.transform.translation.y
@@ -72,8 +72,8 @@ def draw_grid():
         # x = 0.694
         # y = 0.158
 
-        x = 0.613 # this is the x, y position of our custom tuck 
-        y = 0.154
+        x = 0.613 # this is the x, y position of our custom tuck  # joint_angles.CUSTOM_TUCK[0]
+        y = 0.154 # joint_angles.CUSTOM_TUCK[1]
         # find curr location of end effector:
         
         # trans.transform.translation gives current x, y, z
