@@ -12,8 +12,7 @@ import intera_external_devices
 from intera_interface import CHECK_VERSION
 
 
-CUSTOM_TUCK = (0.611, 0.183, -0.093)
-
+CUSTOM_TUCK = (0.611, 0.183, -0.093) # position
 
 def go_to_angles(side, angles):
 
@@ -53,13 +52,8 @@ def go_to_angles(side, angles):
             rate.sleep()
         
 def main():
-    """RSDK Joint Position Example: Keyboard Control
-
-    Use your dev machine's keyboard to control joint positions.
-
-    Each key corresponds to increasing or decreasing the angle
-    of a joint on Sawyer's arm. The increasing and descreasing
-    are represented by number key and letter key next to the number.
+    """
+    Will move to our custom tuck (allows us to draw vertical lines and avoid singualariteis)
     """
     epilog = """
 See help inside the example with the '?' key for key bindings.

@@ -11,7 +11,7 @@ import intera_interface
 from drawing import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
-z = -0.152 - 0.0065 #trans.transform.translation.z 
+z = -0.152 - 0.0065 
 GROUP_NAME = 'right_arm'
 LINK = "right_gripper_tip"
 
@@ -65,14 +65,14 @@ def draw_grid():
     try:
         trans = tfBuffer.lookup_transform("base", link, rospy.Time())   # TODO: may need to update frames
         # trans.transform.translation gives current x, y, z
-        x = trans.transform.translation.x
-        y = trans.transform.translation.y
-        print('x, y before', x, y)
+        # x = trans.transform.translation.x
+        # y = trans.transform.translation.y
+        # print('x, y before', x, y)
         joint_angles.main()
         # x = 0.694
         # y = 0.158
 
-        x = 0.613
+        x = 0.613 # this is the x, y position of our custom tuck 
         y = 0.154
         # find curr location of end effector:
         

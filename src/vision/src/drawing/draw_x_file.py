@@ -19,6 +19,7 @@ z = draw_grid_file.z
 tuck = joint_angles.CUSTOM_TUCK
 # CUSTOM_TUCK = (0.611, 0.183, -0.093)
 
+# TODO: use tfecho to change the values below to correspond to the new custom tuck 
 row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] 
 col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2/3, tuck[1] - 0.02 - 2 * 0.2/3]
 
