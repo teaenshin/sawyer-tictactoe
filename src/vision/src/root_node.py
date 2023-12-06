@@ -7,6 +7,8 @@ from utils import *
 
 from vision.msg import BoardData
 from vision.srv import Robot
+from drawing import joint_angles
+
 
 # TODO: clean up code in this file
 
@@ -17,7 +19,11 @@ class RootNode:
         self.subscriber = rospy.Subscriber("board_data_topic", BoardData, self.gamestate_callback)
         self.gamestate = None
         self.game_over = False
+        # TODO: uncomment 
         self.robot_client(2, None, None) # draw grid
+        joint_angles.main()
+
+        rospy.spin()
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -47,6 +53,7 @@ class RootNode:
     # player is either X or O and depending on which one it is we act accordingly
     def update(self, player):
         ''' player is the player that made the change last'''
+        print("in update")
         if check_win(self.gamestate):
             self.game_over = True
             if check_win(self.gamestate) == "X":
@@ -132,8 +139,14 @@ class RootNode:
         print("START ROOT_NODE")
         rospy.wait_for_service('/draw_service')
         print("/DRAW_SERVICE IS READY")
-        while not rospy.is_shutdown() and not self.game_over:
-            print("GAME IS OVER")
+        print("Please start vision node")
+        # while not rospy.is_shutdown() or self.game_over:
+        while self.game_over:
+
+            if self.game_over:
+                print("GAME IS OVER")
+            else:
+                print("rospy is shutdown")
             self.robot_client(3, None, None) # erase board
             rospy.sleep(0.1)
 

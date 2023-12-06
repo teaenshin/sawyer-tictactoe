@@ -9,12 +9,16 @@ import numpy as np
 from numpy import linalg
 import sys
 from drawing import draw_grid_file
-import joint_angles
+from drawing import joint_angles
 
 # SET BEFOREHAND
-z = draw_grid_file.Z
+z = draw_grid_file.z
 
-tuck = (0.694, 0.158, 0.525)
+# TODO: custom tuck
+# tuck = (0.694, 0.158, 0.525)
+tuck = joint_angles.CUSTOM_TUCK
+# CUSTOM_TUCK = (0.611, 0.183, -0.093)
+
 row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] 
 col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2/3, tuck[1] - 0.02 - 2 * 0.2/3]
 
@@ -57,13 +61,13 @@ def draw_x(msg):
     request.ik_request.pose_stamped.pose.orientation.z = 0.0
     request.ik_request.pose_stamped.pose.orientation.w = 0.0
 
-    z0 = 0.3
+    # z0 = z + height
     x = row_coord[msg //3]
     y = col_coord[msg %3]
 
     try:
 
-        locs = [(x, y, z0), (x, y, z), (x + x_width, y - x_width, z), (x + x_width, y - x_width, z + height), (x + x_width, y, z + height), (x + x_width, y, z), (x, y - x_width, z), (0.694, 0.158, 0.525)]
+        locs = [(x, y, z + height), (x, y, z), (x + x_width, y - x_width, z), (x + x_width, y - x_width, z + height), (x + x_width, y, z + height), (x + x_width, y, z), (x, y - x_width, z)]
 
         for x1, y1, z1 in locs:
 
@@ -78,6 +82,8 @@ def draw_x(msg):
             # Print the response HERE
             print(response)
             group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
+            group.limit_max_cartesian_link_speed(1.2)
+
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)
@@ -92,7 +98,7 @@ def draw_x(msg):
             group.execute(plan[1])
 
         # go to default position
-        # joint_angles.main()
+        joint_angles.main()
 
         
     except rospy.ServiceException as e:

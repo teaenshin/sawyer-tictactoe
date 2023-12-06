@@ -8,11 +8,11 @@ import numpy as np
 from numpy import linalg
 import sys
 from drawing import draw_grid_file
-import joint_angles
+from drawing import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
-z = draw_grid_file.Z + 0.022 #0.036
-# z = -0.065 #trans.transform.translation.z 
+# z = draw_grid_file.z + 0.022 #0.070
+z = -0.125
 
 def erase_grid():
     # Wait for the IK service to become available
@@ -59,9 +59,11 @@ def erase_grid():
         # trans.transform.translation gives current x, y, z
         
         # find curr location of end effector:
-        x = trans.transform.translation.x
-        y = trans.transform.translation.y
-        
+        # TODO
+        # x = trans.transform.translation.x
+        # y = trans.transform.translation.y
+        x = joint_angles.CUSTOM_TUCK[0]
+        y = joint_angles.CUSTOM_TUCK[1]
         
         # trans.transform.translation gives current x, y, z
         locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z),(x+offs, y-width, z), # border horizontal

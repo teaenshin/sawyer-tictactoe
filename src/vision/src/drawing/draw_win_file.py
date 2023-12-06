@@ -8,12 +8,13 @@ import numpy as np
 from numpy import linalg
 import sys
 from drawing import draw_grid_file
-import joint_angles
+from drawing import joint_angles
 
 # SET THIS BEFORE HAND
-z = draw_grid_file.Z
+z = draw_grid_file.z
 
-tuck = (0.694, 0.158, 0.525)
+# tuck = (0.694, 0.158, 0.525)
+tuck = joint_angles.CUSTOM_TUCK
 row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] 
 col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6]
 
@@ -44,7 +45,7 @@ def draw_win(msg):
     
     try:
 
-        locs = [(row_coord[msg[0]//3], col_coord[msg[0]%3], z), (row_coord[msg[1]//3], col_coord[msg[1]%3], z), (row_coord[msg[2]//3], col_coord[msg[2]%3], z), (0.694, 0.158, 0.525)]
+        locs = [(row_coord[msg[0]//3], col_coord[msg[0]%3], z), (row_coord[msg[1]//3], col_coord[msg[1]%3], z), (row_coord[msg[2]//3], col_coord[msg[2]%3], z)]
 
         for x1, y1, z1 in locs:
                 
@@ -60,6 +61,7 @@ def draw_win(msg):
             # Print the response HERE
             print(response)
             group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
+            group.limit_max_cartesian_link_speed(1.2)
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)
@@ -80,7 +82,7 @@ def draw_win(msg):
             group.execute(plan[1])  
 
         # go to default position
-        # joint_angles.main()
+        joint_angles.main()
         
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)

@@ -12,6 +12,7 @@ import intera_external_devices
 from intera_interface import CHECK_VERSION
 
 
+CUSTOM_TUCK = (0.611, 0.183, -0.093)
 
 
 def go_to_angles(side, angles):
@@ -19,6 +20,7 @@ def go_to_angles(side, angles):
 
     limb = intera_interface.Limb(side)
     joints = limb.joint_names()
+    print('joints', joints)
 
     if len(angles) != len(joints):
         rospy.logerr("Number of provided angles does not match the number of joints.")
@@ -69,8 +71,11 @@ See help inside the example with the '?' key for key bindings.
                         "Exiting."), "ERROR")
         return
 
+    # CUSTOM TUCK 
     angles = [0.18581640625, 1.0606513671875, 0.165806640625, -1.8724892578125, -0.1731123046875, 2.20851953125, 1.64812890625]
 
+    # angles = [0.0018544921875, -0.3010791015625, 0.98905078125, -0.523552734375, -1.3970185546875, 0.3013359375, 1.9259921875, 2.126453125, 0.0]
+    # angles = angles[1:-1]
     print("Initializing node... ")
     # rospy.init_node("sdk_joint_position_keyboard")
     print("Getting robot state... ")

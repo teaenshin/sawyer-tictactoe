@@ -113,7 +113,7 @@ class VisionNode:
 
         # cv2.imshow('warped board', warped_board)
         # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()sp
 
         cells = getGridCells(warped_board)
         gamestate = get_state(cells)    

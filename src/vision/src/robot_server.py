@@ -31,6 +31,7 @@ def robot_server():
     print("START ROBOT_SERVER")
     rospy.init_node('robot_server')
     print("ROBOT_SERVER INITED")
+    print("Please start root node")
     s = rospy.Service('/draw_service', Robot, robot_callback)
     rospy.spin()
 
