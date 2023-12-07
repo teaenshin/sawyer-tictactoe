@@ -12,13 +12,12 @@ def get_whiteboard(color_image):
     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
     If no largest contour detected, will return None
     '''
-    hsl = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
+    hls = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
-    lower_hsl = np.array([0, 0, 0])  
-    upper_hsl = np.array([180, 255, 35]) 
+    lower_hls = np.array([0, 0, 0])
+    upper_hls = np.array([180, 255, 35])
 
-
-    mask = cv2.inRange(hsl, lower_hsl, upper_hsl)
+    mask = cv2.inRange(hls, lower_hls, upper_hls)
     # cv2.imshow('mask', mask)
     # cv2.waitKey(0)
     # Find contours in the masked image
