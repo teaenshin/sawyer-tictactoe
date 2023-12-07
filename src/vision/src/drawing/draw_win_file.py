@@ -16,8 +16,9 @@ z = draw_grid_file.z
 # tuck = (0.694, 0.158, 0.525)
 tuck = joint_angles.CUSTOM_TUCK
 # corner = (,) just use corner instead of tuck? if needed
-row_coord = [tuck[0] + 5 * 0.2/6, tuck[0] + 3 * 0.2/6, tuck[0] + 0.2/6] 
-col_coord = [tuck[1] - 0.2/6 , tuck[1] - 3 * 0.2/6, tuck[1] - 5 * 0.2/6]
+tuck1 = (tuck[0], tuck[1]-0.03)
+row_coord = [tuck1[0] + 5 * 0.2/6, tuck1[0] + 3 * 0.2/6, tuck1[0] + 0.2/6] 
+col_coord = [tuck1[1] - 0.2/6 , tuck1[1] - 3 * 0.2/6, tuck1[1] - 5 * 0.2/6]
 
 def draw_win(msg):
     # Wait for the IK service to become available
@@ -62,6 +63,7 @@ def draw_win(msg):
             print(response)
             group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
             group.limit_max_cartesian_link_speed(1.2)
+            group.set_max_velocity_scaling_factor(1)
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)

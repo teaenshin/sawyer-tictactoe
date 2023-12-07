@@ -21,8 +21,9 @@ tuck = joint_angles.CUSTOM_TUCK
 
 # TODO: use tfecho to change the values below to correspond to the new custom tuck 
 # corner = (,) just find tf_echo of bottom corner and use corner[0]/[1] instead of tuck[0]/[1]
-row_coord = [tuck[0] + 0.02 + 2 * 0.2/3, tuck[0] + 0.02 + 0.2/3, tuck[0] + 0.02] 
-col_coord = [tuck[1] - 0.02 , tuck[1] - 0.02 - 0.2/3, tuck[1] - 0.02 - 2 * 0.2/3]
+tuck1 = (tuck[0], tuck[1]-0.03)
+row_coord = [tuck1[0] + 0.02 + 2 * 0.2/3, tuck1[0] + 0.02 + 0.2/3, tuck1[0] + 0.02] 
+col_coord = [tuck1[1] - 0.02 , tuck1[1] - 0.02 - 0.2/3, tuck1[1] - 0.02 - 2 * 0.2/3]
 
 def draw_x(msg):
     print("hello")
@@ -85,6 +86,7 @@ def draw_x(msg):
             print(response)
             group = MoveGroupCommander(draw_grid_file.GROUP_NAME)
             group.limit_max_cartesian_link_speed(1.2)
+            group.set_max_velocity_scaling_factor(1)
 
 
             # Setting position and orientation target

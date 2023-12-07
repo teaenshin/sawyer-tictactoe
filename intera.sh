@@ -1,4 +1,3 @@
-source ~ee106a/sawyer_setup.bash
 source devel/setup.bash
 catkin_make
 roslaunch intera_examples sawyer_tuck.launch

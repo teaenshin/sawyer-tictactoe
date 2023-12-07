@@ -12,7 +12,7 @@ from drawing import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
 # z = draw_grid_file.z + 0.022 #0.070
-z = -0.125
+z = -0.130
 
 def erase_grid():
     # Wait for the IK service to become available
@@ -34,7 +34,7 @@ def erase_grid():
 #         (3)     (5)
 
     # while not rospy.is_shutdown():
-    input('Press [ Enter ] to start erasing: Make sure erase is attached.')
+    input('Press [ Enter ] to start erasing: Make sure eraser is attached.')
     
     # Construct the request
     request = GetPositionIKRequest()
@@ -84,13 +84,12 @@ def erase_grid():
         
         for x1, y1, z1 in locs:
                 
-                # Set the desired orientation for the end effector HERE (marker touches board)
+            # Set the desired orientation for the end effector HERE (marker touches board)
             change = z1 - request.ik_request.pose_stamped.pose.position.z
             request.ik_request.pose_stamped.pose.position.x = x1
             request.ik_request.pose_stamped.pose.position.y = y1
-            request.ik_request.pose_stamped.pose.position.z = z1 # TODO: adjust        
+            request.ik_request.pose_stamped.pose.position.z = z1         
 
-            # move robot to loc 1
             # Send the request to the service
             response = compute_ik(request)
             
@@ -100,7 +99,8 @@ def erase_grid():
 
             # Setting position and orientation target
             group.set_pose_target(request.ik_request.pose_stamped)
-            group.limit_max_cartesian_link_speed(0.2)
+            group.limit_max_cartesian_link_speed(0.8)
+            group.set_max_velocity_scaling_factor(1)
 
             # Plan IK
             plan = group.plan()

@@ -20,10 +20,10 @@ class RootNode:
         self.gamestate = None
         self.game_over = False
         # TODO: uncomment 
-        self.robot_client(2, None, None) # draw grid
+        # self.robot_client(2, None, None) # draw grid
         joint_angles.main()
 
-        rospy.spin()
+        # rospy.spin()
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -55,14 +55,18 @@ class RootNode:
         ''' player is the player that made the change last'''
         print("in update")
         if check_win(self.gamestate):
+            print("game over = true")
             self.game_over = True
             if check_win(self.gamestate) == "X":
                 win = self.getWinningThree()
                 self.robot_client(1, None, win)
+            self.robot_client(3, None, None) # erase board
         elif check_draw(self.gamestate):
             self.game_over = True
+            print("game over = true")
             print("DRAW DETECTED")
             # TODO: publish something 
+            self.robot_client(3, None, None) # erase board
             
         else:
             if player == "O": # if human just went
@@ -79,6 +83,10 @@ class RootNode:
                 temp_gamestate[i] = "X"
                 if check_win(temp_gamestate):
                     return i
+
+        for i in range(9):
+            if self.gamestate[i] == "":
+                temp_gamestate = self.gamestate.copy()
                 temp_gamestate[i] = "O"
                 if check_win(temp_gamestate):
                     return i
@@ -136,12 +144,21 @@ class RootNode:
 
 
     def main(self):
-        print("START ROOT_NODE")
+        print("STARTED ROOT_NODE")
         rospy.wait_for_service('/draw_service')
         print("/DRAW_SERVICE IS READY")
         print("Please start vision node")
-        # while not rospy.is_shutdown() or self.game_over:
-        while self.game_over:
+        print("before while")
+        while not rospy.is_shutdown() or self.game_over:
+        # while not self.game_over:
+            print("while not game over")
+
+            # if self.game_over:
+            #     self.robot_client(3, None, None) # erase board
+            # else:
+            #     print("rospy is shutdown")
+            
+            rospy.sleep(0.1)
 
             if self.game_over:
                 print("GAME IS OVER")

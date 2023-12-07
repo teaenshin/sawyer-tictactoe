@@ -11,7 +11,7 @@ import intera_interface
 from drawing import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
-z = -0.152 - 0.0065 
+z = -0.155 - 0.0055 
 GROUP_NAME = 'right_arm'
 LINK = "right_gripper_tip"
 
@@ -78,18 +78,22 @@ def draw_grid():
         
         # trans.transform.translation gives current x, y, z
         
-        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), # border horizontal
-                (x+offs, y-width, z), (x+offs, y-2*width/3, z), (x+offs, y-width/3, z), (x+offs, y, z),(x+offs, y, z+height),(x+(2*offs), y, z+height), #horizontal 1
-                (x+(2*offs), y, z-0.002), (x+(2*offs), y-width/3, z-0.002), (x+(2*offs), y-2*width/3, z-0.002), (x+(2*offs), y-width, z-0.002),(x+(2*offs), y-width, z+height),(x+width, y-width, z+height), #horizontal 2
-                (x+width, y-width, z-0.002), (x+width, y-2*width/3, z-0.002), (x+width, y-width/3, z-0.002), (x+width, y, z-0.002), (x+width, y, z+height) #(x+width, y, z+height),(x+width, y-offs, z+height), # border horizontal
+        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), #(None, None, None), # border horizontal
+                (x+offs, y-width, z), (x+offs, y-2*width/3, z), (x+offs, y-width/3, z), (x+offs, y, z),(x+offs, y, z+height),(x+(2*offs), y, z+height), #(None, None, None), #horizontal 1
+                (x+(2*offs), y, z-0.002), (x+(2*offs), y-width/3, z-0.002), (x+(2*offs), y-2*width/3, z-0.002), (x+(2*offs), y-width, z-0.002),(x+(2*offs), y-width, z+height),(x+width, y-width, z+height), #(None, None, None),#horizontal 2
+                (x+width, y-width, z-0.002), (x+width, y-2*width/3, z-0.002), (x+width, y-width/3, z-0.002), (x+width, y, z-0.002), (x+(2*offs), y, z+height) #(x+width, y, z+height),(x+width, y-offs, z+height), # border horizontal
                 ]
         
         
         # Draw horizontal Lines
-        '''
+        
         for x1, y1, z1 in locs:
+
+            # if x1 is None:
+            #     joint_angles.main()
+            #     continue
                 
-                # Set the desired orientation for the end effector HERE (marker touches board)
+            # Set the desired orientation for the end effector HERE (marker touches board)
             change = z1 - request.ik_request.pose_stamped.pose.position.z
             request.ik_request.pose_stamped.pose.position.x = x1
             request.ik_request.pose_stamped.pose.position.y = y1
@@ -127,16 +131,16 @@ def draw_grid():
 
             #     # if user_input == 'y':
             group.execute(plan[1])  
-        '''
+        
         input("Press [Enter] to continue drawing vertical lines. Sawyer will tuck to custom psoition. ")
 
         #$ move gripper behind board
         joint_angles.main()
 
         vertLocs = [(x, y, z), (x+width/3, y, z), (x+2*width/3, y, z), (x+width, y, z), (x+width, y, z+height), (None, None, None),
-                    (x, y-width/3, z+height), (x, y-width/3, z), (x+width/3, y-width/3, z), (x+2*width/3, y-width/3, z), (x+width, y-width/3, z), (x+width, y-width/3, z+height),  (None, None, None),
-                    (x, y-2*width/3, z+height), (x, y-2*width/3, z), (x+width/3, y-2*width/3, z), (x+2*width/3, y-2*width/3, z), (x+width, y-2*width/3, z), (x+width, y-2*width/3, z+height),  (None, None, None),
-                    (x, y-width, z+height), (x, y-width, z), (x+width/3, y-width, z), (x+2*width/3, y-width, z), (x+width, y-width, z), (x+width, y-width, z+height)
+                    (x, y-width/3, z+height), (x, y-width/3, z), (x+width/3, y-width/3, z), (x+2*width/3, y-width/3, z), (x+width, y-width/3, z), (x+2*width/3, y-width/3, z+height),  (None, None, None),
+                    (x, y-2*width/3, z+height), (x, y-2*width/3, z), (x+width/3, y-2*width/3, z), (x+2*width/3, y-2*width/3, z), (x+width, y-2*width/3, z), (x+2*width/3, y-2*width/3, z+height),  (None, None, None),
+                    (x, y-width, z+height), (x, y-width, z), (x+width/3, y-width, z), (x+2*width/3, y-width, z), (x+width, y-width, z), (x+2*width/3, y-width, z+height)
                 ]
 
         # for x1, y1, z1 in [(x+width, y, z+height), (x+width, y, z+height)] + locs[::-1] + [(0.694, 0.158, 0.525)]: # last coord is tuck
@@ -160,6 +164,7 @@ def draw_grid():
             print(response)
             group = MoveGroupCommander(GROUP_NAME)
             group.limit_max_cartesian_link_speed(0.8)
+            group.set_max_velocity_scaling_factor(1)
 
 
             # Setting position and orientation target
