@@ -34,7 +34,7 @@ def erase_grid():
 #         (3)     (5)
 
     # while not rospy.is_shutdown():
-    input('Press [ Enter ] to start erasing: ')
+    input('Press [ Enter ] to start erasing: Make sure erase is attached.')
     
     # Construct the request
     request = GetPositionIKRequest()

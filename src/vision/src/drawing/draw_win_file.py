@@ -55,7 +55,6 @@ def draw_win(msg):
             request.ik_request.pose_stamped.pose.position.y = y1
             request.ik_request.pose_stamped.pose.position.z = z1       
 
-            # move robot to loc 1
             # Send the request to the service
             response = compute_ik(request)
             
