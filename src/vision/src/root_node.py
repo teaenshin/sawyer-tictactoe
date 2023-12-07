@@ -20,10 +20,11 @@ class RootNode:
         self.gamestate = None
         self.game_over = False
         # TODO: uncomment 
-        # self.robot_client(2, None, None) # draw grid
+        self.robot_client(2, None, None) # draw grid
         joint_angles.main()
+        # self.robot_client(3, None, None) # erase grid - testing 
 
-        # rospy.spin()
+        rospy.spin()
 
 
     # TODO (maybe), it might happen that the publisher publishes a message while the callback is executing. We don't want to process this
@@ -149,8 +150,7 @@ class RootNode:
         print("/DRAW_SERVICE IS READY")
         print("Please start vision node")
         print("before while")
-        while not rospy.is_shutdown() or self.game_over:
-        # while not self.game_over:
+        while not rospy.is_shutdown() and not self.game_over:
             print("while not game over")
 
             # if self.game_over:
@@ -160,12 +160,10 @@ class RootNode:
             
             rospy.sleep(0.1)
 
-            if self.game_over:
-                print("GAME IS OVER")
-            else:
-                print("rospy is shutdown")
-            self.robot_client(3, None, None) # erase board
-            rospy.sleep(0.1)
+            # if self.game_over:
+            #     print("GAME IS OVER")
+            # else:
+            #     print("rospy is shutdown")
 
         # Perform any cleanup if necessary before exiting
         rospy.loginfo("Exiting root_node")

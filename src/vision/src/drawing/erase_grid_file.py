@@ -9,10 +9,12 @@ from numpy import linalg
 import sys
 from drawing import draw_grid_file
 from drawing import joint_angles
+# import draw_grid_file
+# import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
 # z = draw_grid_file.z + 0.022 #0.070
-z = -0.130
+z = -0.120 - 0.006
 
 def erase_grid():
     # Wait for the IK service to become available
@@ -50,8 +52,8 @@ def erase_grid():
     request.ik_request.pose_stamped.pose.orientation.z = 0
     request.ik_request.pose_stamped.pose.orientation.w = 0
 
-    width = 0.2
-    offs = width/6
+    width = 0.23
+    offs = 0.15/3
     # height= 0.02
     
     try:
@@ -62,14 +64,14 @@ def erase_grid():
         # TODO
         # x = trans.transform.translation.x
         # y = trans.transform.translation.y
-        x = joint_angles.CUSTOM_TUCK[0]
-        y = joint_angles.CUSTOM_TUCK[1]
+        x = joint_angles.CUSTOM_TUCK[0] + offs
+        y = joint_angles.CUSTOM_TUCK[1]+0.015
         
         # trans.transform.translation gives current x, y, z
-        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z),(x+offs, y-width, z), # border horizontal
-                (x+offs, y-width, z), (x+offs, y-2*width/3, z), (x+offs, y-width/3, z), (x+offs, y, z),(x+offs, y, z),(x+(2*offs), y, z), #horizontal 1
-                (x+(2*offs), y, z), (x+(2*offs), y-width/3, z), (x+(2*offs), y-2*width/3, z), (x+(2*offs), y-width, z),(x+(2*offs), y-width, z),(x+width, y-width, z), #horizontal 2
-                (x+width, y-width, z), (x+width, y-2*width/3, z), (x+width, y-width/3, z), (x+width, y, z), (x+width, y, z), (0.694, 0.158, 0.525) #(x+width, y, z),(x+width, y-offs, z), # border horizontal
+        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width-0.03, z), (x, y-width-0.03, z+0.02), (x+offs, y-width-0.03, z+0.02), (x+offs, y-width-0.03, z), # border horizontal
+                (x+offs, y-width, z), (x+offs, y-2*width/3, z), (x+offs, y-width/3, z), (x+offs, y, z),(x+offs, y, z), (x+offs, y, z+0.02), (x+(2*offs), y, z+0.02),(x+(2*offs), y, z), #horizontal 1
+                (x+(2*offs), y, z), (x+(2*offs), y-width/3, z), (x+(2*offs), y-2*width/3, z), (x+(2*offs), y-width, z),(x+(2*offs), y-width-0.03, z), (x+(2*offs), y-width-0.03, z+0.02), (None, None, None), (x+(3*offs), y-width-0.03, z+0.02),(x+(3*offs), y-width-0.03, z),  #horizontal 2
+                (x+(3*offs), y-width, z), (x+(3*offs), y-2*width/3, z), (x+(3*offs), y-width/3, z), (x+(3*offs), y, z), (x+(3*offs), y, z), (x+(3*offs), y, z+0.02) #(x+width, y, z),(x+width, y-offs, z), # border horizontal
                 ]
 
         # locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z),(x+offs, y-width, z), # border horizontal
@@ -83,6 +85,10 @@ def erase_grid():
         #         ]
         
         for x1, y1, z1 in locs:
+
+            if x1 is None:
+                joint_angles.main()
+                continue
                 
             # Set the desired orientation for the end effector HERE (marker touches board)
             change = z1 - request.ik_request.pose_stamped.pose.position.z
@@ -109,19 +115,21 @@ def erase_grid():
             # # Execute IK if safe
 
             if (change != 0):
-                user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                # user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                while user_input == 'n':
-                    plan = group.plan()
-                    user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
+                # while user_input == 'n':
+                #     plan = group.plan()
+                #     user_input = input("Enter 'y' if the trajectory looks safe on RVIZ")
 
-                if user_input == 'y':
-                    group.execute(plan[1])
+                # if user_input == 'y':
+                group.execute(plan[1])
 
             else:
 
                 # if user_input == 'y':
                 group.execute(plan[1])  
+
+        joint_angles.main()
 
         # go to default position
         # joint_angles.main()

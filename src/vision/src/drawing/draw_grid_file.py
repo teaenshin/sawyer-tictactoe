@@ -9,9 +9,10 @@ from numpy import linalg
 import sys
 import intera_interface
 from drawing import joint_angles
+# import joint_angles
 
 # SET THIS BEFOREHAND AND UPDTAE IN DRAW_X_FILE and DRAW_WINFILE
-z = -0.155 - 0.0055 
+z = -0.144 - 0.0055 
 GROUP_NAME = 'right_arm'
 LINK = "right_gripper_tip"
 
@@ -78,10 +79,10 @@ def draw_grid():
         
         # trans.transform.translation gives current x, y, z
         
-        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(x+offs, y-width, z+height), #(None, None, None), # border horizontal
-                (x+offs, y-width, z), (x+offs, y-2*width/3, z), (x+offs, y-width/3, z), (x+offs, y, z),(x+offs, y, z+height),(x+(2*offs), y, z+height), #(None, None, None), #horizontal 1
-                (x+(2*offs), y, z-0.002), (x+(2*offs), y-width/3, z-0.002), (x+(2*offs), y-2*width/3, z-0.002), (x+(2*offs), y-width, z-0.002),(x+(2*offs), y-width, z+height),(x+width, y-width, z+height), #(None, None, None),#horizontal 2
-                (x+width, y-width, z-0.002), (x+width, y-2*width/3, z-0.002), (x+width, y-width/3, z-0.002), (x+width, y, z-0.002), (x+(2*offs), y, z+height) #(x+width, y, z+height),(x+width, y-offs, z+height), # border horizontal
+        locs = [(x, y, z), (x, y-width/3, z), (x, y-2*width/3, z), (x, y-width, z),(x, y-width, z+height),(None, None, None), #(None, None, None), # border horizontal
+                (x+offs, y, z+height), (x+offs, y, z), (x+offs, y-width/3, z), (x+offs, y-2*width/3, z), (x+offs, y-width, z),(x+offs, y-width, z+height),(None, None, None),#(None, None, None), #horizontal 1
+                (x+(2*offs), y, z-0.002+height), (x+(2*offs), y, z-0.002), (x+(2*offs), y-width/3, z-0.002), (x+(2*offs), y-2*width/3, z-0.002), (x+(2*offs), y-width, z-0.002),(x+(2*offs), y-width, z+height),(None, None, None), #(None, None, None),#horizontal 2
+                (x+width, y, z-0.002+height),(x+width, y, z-0.002), (x+width, y-width/3, z-0.002), (x+width, y-2*width/3, z-0.002), (x+width, y-width, z-0.002), (x+(2*offs), y-width, z+height) #(x+width, y, z+height),(x+width, y-offs, z+height), # border horizontal
                 ]
         
         
@@ -89,9 +90,9 @@ def draw_grid():
         
         for x1, y1, z1 in locs:
 
-            # if x1 is None:
-            #     joint_angles.main()
-            #     continue
+            if x1 is None:
+                joint_angles.main()
+                continue
                 
             # Set the desired orientation for the end effector HERE (marker touches board)
             change = z1 - request.ik_request.pose_stamped.pose.position.z
