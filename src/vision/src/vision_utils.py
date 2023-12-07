@@ -32,32 +32,34 @@ def get_whiteboard(color_image):
     largest_contour = max(contours, key=cv2.contourArea)
     return largest_contour
 
-# def get_whiteboard(color_image):
-#     '''
-#     Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
-#     If no largest contour detected, will return None
-#     '''
-#     hsv = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
+def get_whiteboard_backup(color_image):
+    '''
+    Takes in a color_image input and detects the whiteboard by finding the largest contour by area.
+    If no largest contour detected, will return None
+    '''
+    hls = cv2.cvtColor(color_image, cv2.COLOR_BGR2HLS)
 
-#     lower_hsv = np.array([0, 0, 160])  
-#     upper_hsv = np.array([180, 80, 255]) 
+    lower_hls = np.array([0, 100, 0])  
+    upper_hls = np.array([180, 255, 35])
 
-#     mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
-#     # Create a binary mask for the white paper
+    lower_2 = np.array([0, 180, 0])
+    upper_2 = np.array([180, 255, 255])
 
-#     cv2.imshow('mask', mask)
-#     cv2.waitKey(0)
-#     # Find contours in the masked image
-#     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    mask = cv2.inRange(hls, lower_hls, upper_hls)
+    mask2 = cv2.inRange(hls, lower_2, upper_2)
+    mask = cv2.bitwise_or(mask,mask2)
 
-#     # If there are no contours, return None
-#     if not contours:
-#         print("Error: there are no contours")
-#         return None
+    # Find contours in the masked image
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-#     # Find the largest contour by area
-#     largest_contour = max(contours, key=cv2.contourArea)
-#     return largest_contour
+    # If there are no contours, return None
+    if not contours:
+        print("Error: there are no contours")
+        return None
+
+    # Find the largest contour by area
+    largest_contour = max(contours, key=cv2.contourArea)
+    return largest_contour
 
 # def get_contour_center(contour):
 #     M = cv2.moments(contour)
